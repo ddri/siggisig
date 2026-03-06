@@ -1,0 +1,25 @@
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xccheckout
+*.moved-aside
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# IDE
+.idea/
+.vscode/
