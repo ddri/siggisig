@@ -1,0 +1,44 @@
+import Foundation
+
+struct Route: Identifiable, Equatable {
+    let id = UUID()
+    let appName: String
+    let bundleID: String?
+    let pid: pid_t
+    let slot: Int
+
+    var channelPair: String { Self.channelPairLabel(for: slot) }
+
+    static func channelPairLabel(for slot: Int) -> String {
+        let first = slot * 2 + 1
+        let second = slot * 2 + 2
+        return "Ch \(first)-\(second)"
+    }
+}
+
+struct RouterState {
+    private(set) var routes: [Route] = []
+    let maxSlots = 8
+
+    var availableSlots: Int { maxSlots - routes.count }
+
+    var statusText: String {
+        if routes.isEmpty {
+            return "No apps routed"
+        }
+        return "Routing \(routes.count) app\(routes.count == 1 ? "" : "s") to BlackHole"
+    }
+
+    mutating func addRoute(appName: String, bundleID: String?, pid: pid_t, slot: Int) {
+        let route = Route(appName: appName, bundleID: bundleID, pid: pid, slot: slot)
+        routes.append(route)
+    }
+
+    mutating func removeRoute(pid: pid_t) {
+        routes.removeAll { $0.pid == pid }
+    }
+
+    func slotFor(pid: pid_t) -> Int? {
+        routes.first { $0.pid == pid }?.slot
+    }
+}
