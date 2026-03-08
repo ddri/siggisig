@@ -1,3 +1,4 @@
+import CoreAudio
 import SwiftUI
 
 @MainActor
@@ -21,6 +22,8 @@ final class RouterViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+        observeWorkspace()
+        observeAudioDevices()
     }
 
     func refreshApps() {
@@ -71,6 +74,40 @@ final class RouterViewModel {
     func channelLabel(for app: CaptureApp) -> String? {
         guard let slot = routerState.slotFor(pid: app.id) else { return nil }
         return Route.channelPairLabel(for: slot)
+    }
+
+    private func observeWorkspace() {
+        let center = NSWorkspace.shared.notificationCenter
+        center.addObserver(
+            forName: NSWorkspace.didTerminateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+            let pid = app.processIdentifier
+            Task { @MainActor in
+                self?.routerState.removeRoute(pid: pid)
+            }
+        }
+    }
+
+    private func observeAudioDevices() {
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress,
+            .main
+        ) { [weak self] _, _ in
+            Task { @MainActor in
+                if self?.isBlackHoleAvailable == false {
+                    self?.errorMessage = "BlackHole 16ch disconnected"
+                }
+            }
+        }
     }
 
     private func cleanupDeadProcesses() {
