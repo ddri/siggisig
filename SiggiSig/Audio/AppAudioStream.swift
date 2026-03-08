@@ -6,24 +6,27 @@ enum AudioCaptureError: Error, LocalizedError {
     case appNotFound
     case blackHoleNotFound
     case engineStartFailed
+    case noSlotsAvailable
 
     var errorDescription: String? {
         switch self {
         case .appNotFound: "Application not found for capture"
         case .blackHoleNotFound: "BlackHole 16ch not found. Please install it."
         case .engineStartFailed: "Failed to start audio engine"
+        case .noSlotsAvailable: "All 8 stereo channel slots are in use"
         }
     }
 }
 
 final class AppAudioStream: NSObject, @unchecked Sendable, SCStreamOutput {
     let app: CaptureApp
-    var onAudioBuffer: (@Sendable (AVAudioPCMBuffer, AVAudioFormat) -> Void)?
+    let onAudioBuffer: @Sendable (AVAudioPCMBuffer, AVAudioFormat) -> Void
 
     private var stream: SCStream?
 
-    init(app: CaptureApp) {
+    init(app: CaptureApp, onAudioBuffer: @escaping @Sendable (AVAudioPCMBuffer, AVAudioFormat) -> Void) {
         self.app = app
+        self.onAudioBuffer = onAudioBuffer
     }
 
     func start() async throws {
@@ -86,6 +89,6 @@ final class AppAudioStream: NSObject, @unchecked Sendable, SCStreamOutput {
         )
         guard status == noErr else { return }
 
-        onAudioBuffer?(pcmBuffer, format)
+        onAudioBuffer(pcmBuffer, format)
     }
 }

@@ -1,10 +1,12 @@
 @preconcurrency import AVFoundation
 import CoreAudio
 
-final class AudioCaptureEngine: @unchecked Sendable {
+@MainActor
+final class AudioCaptureEngine {
     private let engine = AVAudioEngine()
     private var activeStreams: [pid_t: ManagedStream] = [:]
     private let maxStereoSlots = 8  // BlackHole 16ch = 8 stereo pairs
+    private let audioQueue = DispatchQueue(label: "com.siggisig.audio-scheduling", qos: .userInteractive)
 
     private struct ManagedStream {
         let appStream: AppAudioStream
@@ -40,6 +42,10 @@ final class AudioCaptureEngine: @unchecked Sendable {
             throw AudioCaptureError.engineStartFailed
         }
 
+        // Connect mainMixerNode to outputNode with explicit 16-channel format
+        let format16ch = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 16)!
+        engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format16ch)
+
         engine.prepare()
         try engine.start()
     }
@@ -50,26 +56,29 @@ final class AudioCaptureEngine: @unchecked Sendable {
         }
 
         guard let slot = nextFreeSlot() else {
-            throw AudioCaptureError.engineStartFailed
+            throw AudioCaptureError.noSlotsAvailable
         }
 
         let playerNode = AVAudioPlayerNode()
         engine.attach(playerNode)
 
-        // Connect player to output with channel mapping
-        let outputFormat = engine.outputNode.outputFormat(forBus: 0)
-        engine.connect(playerNode, to: engine.mainMixerNode, format: outputFormat)
+        // Connect player to mainMixerNode with stereo format
+        let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2)!
+        engine.connect(playerNode, to: engine.mainMixerNode, format: stereoFormat)
 
-        // Set channel map: route to the correct stereo pair
+        // Set channel map: route stereo input to the correct pair in 16ch output
         let channelMap = makeChannelMap(slot: slot, totalChannels: 16)
         playerNode.auAudioUnit.channelMap = channelMap
 
         playerNode.play()
 
-        let appStream = AppAudioStream(app: app)
         nonisolated(unsafe) let node = playerNode
-        appStream.onAudioBuffer = { [weak self] buffer, format in
-            self?.scheduleBuffer(buffer, format: format, on: node)
+        let queue = self.audioQueue
+        let weakSelf = self
+        let appStream = AppAudioStream(app: app) { buffer, format in
+            queue.async { [weak weakSelf] in
+                weakSelf?.scheduleBuffer(buffer, format: format, on: node)
+            }
         }
 
         try await appStream.start()
@@ -86,15 +95,23 @@ final class AudioCaptureEngine: @unchecked Sendable {
     func stopCapture(for app: CaptureApp) async {
         guard let managed = activeStreams.removeValue(forKey: app.id) else { return }
         await managed.appStream.stop()
-        managed.playerNode.stop()
-        engine.detach(managed.playerNode)
+        let node = managed.playerNode
+        let eng = self.engine
+        audioQueue.sync {
+            node.stop()
+            eng.detach(node)
+        }
     }
 
     func stopAll() async {
         for (_, managed) in activeStreams {
             await managed.appStream.stop()
-            managed.playerNode.stop()
-            engine.detach(managed.playerNode)
+            let node = managed.playerNode
+            let eng = self.engine
+            audioQueue.sync {
+                node.stop()
+                eng.detach(node)
+            }
         }
         activeStreams.removeAll()
         engine.stop()
@@ -126,8 +143,8 @@ final class AudioCaptureEngine: @unchecked Sendable {
         return map
     }
 
-    private func scheduleBuffer(_ buffer: AVAudioPCMBuffer, format: AVAudioFormat, on playerNode: AVAudioPlayerNode) {
-        // Convert format if needed
+    private nonisolated func scheduleBuffer(_ buffer: AVAudioPCMBuffer, format: AVAudioFormat, on playerNode: AVAudioPlayerNode) {
+        // Called on audioQueue
         let outputFormat = playerNode.outputFormat(forBus: 0)
         if format == outputFormat {
             playerNode.scheduleBuffer(buffer)
