@@ -11,6 +11,30 @@ final class RouterViewModel {
 
     private let engine = AudioCaptureEngine()
     private var refreshTimer: Timer?
+    private var workspaceObserver: NSObjectProtocol?
+    private var audioDevicePropertyAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioHardwarePropertyDevices,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+    private var audioDeviceListenerBlock: AudioObjectPropertyListenerBlock?
+
+    deinit {
+        MainActor.assumeIsolated {
+            refreshTimer?.invalidate()
+            if let observer = workspaceObserver {
+                NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            }
+            if let block = audioDeviceListenerBlock {
+                AudioObjectRemovePropertyListenerBlock(
+                    AudioObjectID(kAudioObjectSystemObject),
+                    &audioDevicePropertyAddress,
+                    .main,
+                    block
+                )
+            }
+        }
+    }
 
     var isBlackHoleAvailable: Bool {
         engine.blackHoleDevice != nil
@@ -78,7 +102,7 @@ final class RouterViewModel {
 
     private func observeWorkspace() {
         let center = NSWorkspace.shared.notificationCenter
-        center.addObserver(
+        workspaceObserver = center.addObserver(
             forName: NSWorkspace.didTerminateApplicationNotification,
             object: nil,
             queue: .main
@@ -92,22 +116,20 @@ final class RouterViewModel {
     }
 
     private func observeAudioDevices() {
-        var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDevices,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        AudioObjectAddPropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject),
-            &propertyAddress,
-            .main
-        ) { [weak self] _, _ in
+        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
             Task { @MainActor in
                 if self?.isBlackHoleAvailable == false {
                     self?.errorMessage = "BlackHole 16ch disconnected"
                 }
             }
         }
+        audioDeviceListenerBlock = block
+        AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &audioDevicePropertyAddress,
+            .main,
+            block
+        )
     }
 
     private func cleanupDeadProcesses() {
