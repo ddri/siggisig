@@ -43,7 +43,9 @@ final class AudioCaptureEngine {
         }
 
         // Connect mainMixerNode to outputNode with explicit 16-channel format
-        let format16ch = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 16)!
+        guard let format16ch = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 16) else {
+            throw AudioCaptureError.engineStartFailed
+        }
         engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format16ch)
 
         engine.prepare()
@@ -63,7 +65,9 @@ final class AudioCaptureEngine {
         engine.attach(playerNode)
 
         // Connect player to mainMixerNode with stereo format
-        let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2)!
+        guard let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2) else {
+            throw AudioCaptureError.engineStartFailed
+        }
         engine.connect(playerNode, to: engine.mainMixerNode, format: stereoFormat)
 
         // Set channel map: route stereo input to the correct pair in 16ch output

@@ -4,7 +4,7 @@ struct CaptureApp: Identifiable, Hashable, @unchecked Sendable {
     let id: pid_t
     let name: String
     let bundleIdentifier: String?
-    nonisolated(unsafe) let icon: NSImage?
+    let icon: NSImage?
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)

@@ -50,7 +50,7 @@ struct SetupWizardView: View {
                 HStack(spacing: 12) {
                     Link(
                         "Download BlackHole",
-                        destination: URL(string: "https://existential.audio/blackhole/")!
+                        destination: URL(string: "https://existential.audio/blackhole/") ?? URL(string: "about:blank")!
                     )
                     .buttonStyle(.borderedProminent)
 
