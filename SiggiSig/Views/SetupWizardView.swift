@@ -6,6 +6,7 @@ struct SetupWizardView: View {
     @State private var blackHoleDetected = false
     @State private var permissionGranted = false
     @State private var checking = false
+    @State private var permissionRequested = false
     @State private var step = 1
 
     var body: some View {
@@ -75,23 +76,45 @@ struct SetupWizardView: View {
             Text("Screen Recording Permission")
                 .font(.headline)
 
-            Text(
-                "SiggiSig needs this permission to capture audio from individual apps."
-            )
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
-
             if permissionGranted {
                 Text("Permission granted!")
                     .foregroundColor(.green)
                 Button("Get Started") { isComplete = true }
                     .buttonStyle(.borderedProminent)
+            } else if permissionRequested {
+                Text(
+                    "If no prompt appeared, you'll need to add SiggiSig manually in System Settings."
+                )
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+
+                VStack(spacing: 8) {
+                    Button("Open System Settings") {
+                        openScreenRecordingSettings()
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button("Check Again") {
+                        Task { await checkPermission() }
+                    }
+                    .buttonStyle(.bordered)
+                }
             } else {
+                Text(
+                    "SiggiSig needs this permission to capture audio from individual apps."
+                )
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+
                 Button("Request Permission") {
                     Task { await requestPermission() }
                 }
                 .buttonStyle(.borderedProminent)
             }
+        }
+        .task { await checkPermission() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await checkPermission() }
         }
     }
 
@@ -101,14 +124,30 @@ struct SetupWizardView: View {
         checking = false
     }
 
-    private func requestPermission() async {
+    private func checkPermission() async {
         do {
-            // Requesting shareable content triggers the permission prompt
             _ = try await SCShareableContent.excludingDesktopWindows(
                 true, onScreenWindowsOnly: true)
             permissionGranted = true
         } catch {
             permissionGranted = false
+        }
+    }
+
+    private func requestPermission() async {
+        do {
+            _ = try await SCShareableContent.excludingDesktopWindows(
+                true, onScreenWindowsOnly: true)
+            permissionGranted = true
+        } catch {
+            permissionGranted = false
+        }
+        permissionRequested = true
+    }
+
+    private func openScreenRecordingSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+            NSWorkspace.shared.open(url)
         }
     }
 }
