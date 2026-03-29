@@ -1,0 +1,481 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		003CE7B153069FB4C7533AEF /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */; };
+		074DE0C06FCBC5A7E37551D1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */; };
+		3038309D6106960BA1AF3051 /* PlaceholderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16D2343A516FA36418D63BB /* PlaceholderTests.swift */; };
+		350E4E30CA3183A71AAAFFBE /* RouterStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */; };
+		442ABBD1CAE409D4A5579A29 /* AppDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */; };
+		61B4DFAAC2525EDF5C71CAC2 /* SiggiSigApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */; };
+		6619B2088CC7E637B1DD1AC7 /* RouterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D629484ACA19EF4D6A82E82 /* RouterViewModel.swift */; };
+		86142EF1E5304D2BFCFDAB95 /* SetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17572707AF71D71D6F152AC /* SetupWizardView.swift */; };
+		919F625B7901FCEFE50E5F41 /* AppAudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */; };
+		A0237EBA86FF2E60516BBA2D /* AudioDeviceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */; };
+		B28126114350C9920E71494E /* ActiveRoutesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB120ED23668EB2075566517 /* ActiveRoutesView.swift */; };
+		D27AFCD0E1B9D089D8964882 /* AudioDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A113F3C56B427B32B547A684 /* AudioDeviceManager.swift */; };
+		DD0E2A829B2B40AD9D079969 /* RouterState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48CEF3C1F42B2EEC90C053 /* RouterState.swift */; };
+		EA79B5ED57D258202F570202 /* AppListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296BAD4FAB55E3E71619BF79 /* AppListView.swift */; };
+		F072E5D7F4F697748A4A745D /* AppDiscoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F16766706F4A3E04BD9AB5 /* AppDiscoveryTests.swift */; };
+		F24542BC888922698C22E2CE /* AudioCaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC15717A34D62913D03EEC2 /* AudioCaptureEngine.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		40C31A09115B699C6F1A0E29 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D45A177A6E98C1E64572A67D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 911B69E4BD259CEBD1DA29AA;
+			remoteInfo = SiggiSig;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAudioStream.swift; sourceTree = "<group>"; };
+		19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiscovery.swift; sourceTree = "<group>"; };
+		296BAD4FAB55E3E71619BF79 /* AppListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppListView.swift; sourceTree = "<group>"; };
+		2CC15717A34D62913D03EEC2 /* AudioCaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureEngine.swift; sourceTree = "<group>"; };
+		3D629484ACA19EF4D6A82E82 /* RouterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterViewModel.swift; sourceTree = "<group>"; };
+		48C1CBB6776403CCC62F09FA /* SiggiSig.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SiggiSig.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceManagerTests.swift; sourceTree = "<group>"; };
+		694CED724CF789354915FA82 /* SiggiSigTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SiggiSigTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		91F16766706F4A3E04BD9AB5 /* AppDiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiscoveryTests.swift; sourceTree = "<group>"; };
+		A113F3C56B427B32B547A684 /* AudioDeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceManager.swift; sourceTree = "<group>"; };
+		A16D2343A516FA36418D63BB /* PlaceholderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTests.swift; sourceTree = "<group>"; };
+		AE48CEF3C1F42B2EEC90C053 /* RouterState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterState.swift; sourceTree = "<group>"; };
+		B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiggiSigApp.swift; sourceTree = "<group>"; };
+		BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		CB120ED23668EB2075566517 /* ActiveRoutesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRoutesView.swift; sourceTree = "<group>"; };
+		E17572707AF71D71D6F152AC /* SetupWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupWizardView.swift; sourceTree = "<group>"; };
+		EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterStateTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		3F18E27F102A284C86CFE08F /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				91F16766706F4A3E04BD9AB5 /* AppDiscoveryTests.swift */,
+				624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */,
+				A16D2343A516FA36418D63BB /* PlaceholderTests.swift */,
+				EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		453204835DB1EAC8F0E0E995 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CB120ED23668EB2075566517 /* ActiveRoutesView.swift */,
+				296BAD4FAB55E3E71619BF79 /* AppListView.swift */,
+				E17572707AF71D71D6F152AC /* SetupWizardView.swift */,
+				BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		57F23A58E7B6BB671C538C2D /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */,
+				2CC15717A34D62913D03EEC2 /* AudioCaptureEngine.swift */,
+				A113F3C56B427B32B547A684 /* AudioDeviceManager.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		7E5B9192C9F872AE394F4FD0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				48C1CBB6776403CCC62F09FA /* SiggiSig.app */,
+				694CED724CF789354915FA82 /* SiggiSigTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		928F4C55C671DE31D756905C /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				3D629484ACA19EF4D6A82E82 /* RouterViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		CA4CF25403486D25171B4B14 /* SiggiSig */ = {
+			isa = PBXGroup;
+			children = (
+				5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */,
+				B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */,
+				D767D65D01865A39D95B4E83 /* App */,
+				57F23A58E7B6BB671C538C2D /* Audio */,
+				E20826CC4946DF5350A66C8B /* State */,
+				928F4C55C671DE31D756905C /* ViewModels */,
+				453204835DB1EAC8F0E0E995 /* Views */,
+			);
+			path = SiggiSig;
+			sourceTree = "<group>";
+		};
+		D767D65D01865A39D95B4E83 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		E20826CC4946DF5350A66C8B /* State */ = {
+			isa = PBXGroup;
+			children = (
+				AE48CEF3C1F42B2EEC90C053 /* RouterState.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		F8B3A22159D49F94A64726DC = {
+			isa = PBXGroup;
+			children = (
+				CA4CF25403486D25171B4B14 /* SiggiSig */,
+				3F18E27F102A284C86CFE08F /* Tests */,
+				7E5B9192C9F872AE394F4FD0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7E85C106A36F54086616D08F /* SiggiSigTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AAA9E98FDE1572C1C3E86BE2 /* Build configuration list for PBXNativeTarget "SiggiSigTests" */;
+			buildPhases = (
+				7CB38E4479BAF5FE5639132A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3A4A488A41CFFEBFF8604F63 /* PBXTargetDependency */,
+			);
+			name = SiggiSigTests;
+			packageProductDependencies = (
+			);
+			productName = SiggiSigTests;
+			productReference = 694CED724CF789354915FA82 /* SiggiSigTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		911B69E4BD259CEBD1DA29AA /* SiggiSig */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E77D937B42C9D8E3B3D6D666 /* Build configuration list for PBXNativeTarget "SiggiSig" */;
+			buildPhases = (
+				83751E14C4663FD1A4099E7F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SiggiSig;
+			packageProductDependencies = (
+			);
+			productName = SiggiSig;
+			productReference = 48C1CBB6776403CCC62F09FA /* SiggiSig.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D45A177A6E98C1E64572A67D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 1A43BE8C6CC38B364D7B1364 /* Build configuration list for PBXProject "SiggiSig" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F8B3A22159D49F94A64726DC;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7E5B9192C9F872AE394F4FD0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				911B69E4BD259CEBD1DA29AA /* SiggiSig */,
+				7E85C106A36F54086616D08F /* SiggiSigTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7CB38E4479BAF5FE5639132A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F072E5D7F4F697748A4A745D /* AppDiscoveryTests.swift in Sources */,
+				A0237EBA86FF2E60516BBA2D /* AudioDeviceManagerTests.swift in Sources */,
+				3038309D6106960BA1AF3051 /* PlaceholderTests.swift in Sources */,
+				350E4E30CA3183A71AAAFFBE /* RouterStateTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		83751E14C4663FD1A4099E7F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B28126114350C9920E71494E /* ActiveRoutesView.swift in Sources */,
+				919F625B7901FCEFE50E5F41 /* AppAudioStream.swift in Sources */,
+				442ABBD1CAE409D4A5579A29 /* AppDiscovery.swift in Sources */,
+				EA79B5ED57D258202F570202 /* AppListView.swift in Sources */,
+				F24542BC888922698C22E2CE /* AudioCaptureEngine.swift in Sources */,
+				D27AFCD0E1B9D089D8964882 /* AudioDeviceManager.swift in Sources */,
+				074DE0C06FCBC5A7E37551D1 /* ContentView.swift in Sources */,
+				DD0E2A829B2B40AD9D079969 /* RouterState.swift in Sources */,
+				6619B2088CC7E637B1DD1AC7 /* RouterViewModel.swift in Sources */,
+				86142EF1E5304D2BFCFDAB95 /* SetupWizardView.swift in Sources */,
+				61B4DFAAC2525EDF5C71CAC2 /* SiggiSigApp.swift in Sources */,
+				003CE7B153069FB4C7533AEF /* StatusBarView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3A4A488A41CFFEBFF8604F63 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 911B69E4BD259CEBD1DA29AA /* SiggiSig */;
+			targetProxy = 40C31A09115B699C6F1A0E29 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		52F1B66D0ACD799BB89E8595 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		5695168508EACCA2FD3B2F2E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.siggisig.SiggiSigTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SiggiSig.app/Contents/MacOS/SiggiSig";
+			};
+			name = Debug;
+		};
+		9123ECA4719E2FD37BBF36B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A5CB81D7FD90A20203AB68BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SiggiSig/SiggiSig.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = SiggiSig/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.siggisig.app;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		D5907A7DA68C553E2D7F1464 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SiggiSig/SiggiSig.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = SiggiSig/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.siggisig.app;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		F9693A14DC76023DE4D7FEFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.siggisig.SiggiSigTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SiggiSig.app/Contents/MacOS/SiggiSig";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A43BE8C6CC38B364D7B1364 /* Build configuration list for PBXProject "SiggiSig" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				52F1B66D0ACD799BB89E8595 /* Debug */,
+				9123ECA4719E2FD37BBF36B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AAA9E98FDE1572C1C3E86BE2 /* Build configuration list for PBXNativeTarget "SiggiSigTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5695168508EACCA2FD3B2F2E /* Debug */,
+				F9693A14DC76023DE4D7FEFF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E77D937B42C9D8E3B3D6D666 /* Build configuration list for PBXNativeTarget "SiggiSig" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A5CB81D7FD90A20203AB68BA /* Debug */,
+				D5907A7DA68C553E2D7F1464 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D45A177A6E98C1E64572A67D /* Project object */;
+}

@@ -12,6 +12,7 @@ DerivedData/
 
 # Swift Package Manager
 .build/
+.swiftpm/
 Packages/
 Package.resolved
 

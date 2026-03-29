@@ -1,0 +1,44 @@
+name: SiggiSig
+options:
+  bundleIdPrefix: com.siggisig
+  deploymentTarget:
+    macOS: "15.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: false
+
+targets:
+  SiggiSig:
+    type: application
+    platform: macOS
+    sources:
+      - path: SiggiSig
+        excludes:
+          - Info.plist
+          - SiggiSig.entitlements
+    info:
+      path: SiggiSig/Info.plist
+      properties:
+        CFBundleDisplayName: SiggiSig
+        CFBundleName: SiggiSig
+        CFBundleIdentifier: com.siggisig.app
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        NSScreenCaptureUsageDescription: "SiggiSig needs screen capture permission to capture audio from individual applications."
+    entitlements:
+      path: SiggiSig/SiggiSig.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.siggisig.app
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "15.0"
+
+  SiggiSigTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: SiggiSig
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
