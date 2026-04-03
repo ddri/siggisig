@@ -127,7 +127,7 @@ struct SetupWizardView: View {
     private func checkPermission() async {
         do {
             _ = try await SCShareableContent.excludingDesktopWindows(
-                true, onScreenWindowsOnly: true)
+                false, onScreenWindowsOnly: false)
             permissionGranted = true
         } catch {
             permissionGranted = false
@@ -137,7 +137,7 @@ struct SetupWizardView: View {
     private func requestPermission() async {
         do {
             _ = try await SCShareableContent.excludingDesktopWindows(
-                true, onScreenWindowsOnly: true)
+                false, onScreenWindowsOnly: false)
             permissionGranted = true
         } catch {
             permissionGranted = false
