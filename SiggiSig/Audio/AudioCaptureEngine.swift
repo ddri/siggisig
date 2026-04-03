@@ -1,12 +1,18 @@
 @preconcurrency import AVFoundation
 import CoreAudio
 
+struct MeterLevels: Sendable {
+    let rms: Float      // 0.0 to 1.0
+    let peak: Float     // 0.0 to 1.0
+}
+
 @MainActor
 final class AudioCaptureEngine {
     private let engine = AVAudioEngine()
     private var activeStreams: [pid_t: ManagedStream] = [:]
     private let maxStereoSlots = 8  // BlackHole 16ch = 8 stereo pairs
     private let audioQueue = DispatchQueue(label: "com.siggisig.audio-scheduling", qos: .userInteractive)
+    private var meterCallbacks: [pid_t: @Sendable (MeterLevels) -> Void] = [:]
 
     private struct ManagedStream {
         let appStream: AppAudioStream
@@ -103,6 +109,7 @@ final class AudioCaptureEngine {
 
     func stopCapture(for app: CaptureApp) async {
         guard let managed = activeStreams.removeValue(forKey: app.id) else { return }
+        meterCallbacks.removeValue(forKey: app.id)
         await managed.appStream.stop()
         let node = managed.playerNode
         let mixer = managed.routeMixer
@@ -116,6 +123,7 @@ final class AudioCaptureEngine {
     }
 
     func stopAll() async {
+        meterCallbacks.removeAll()
         for (_, managed) in activeStreams {
             await managed.appStream.stop()
             let node = managed.playerNode
@@ -152,6 +160,46 @@ final class AudioCaptureEngine {
     func setVolume(for app: CaptureApp, db: Float) {
         guard let managed = activeStreams[app.id] else { return }
         managed.routeMixer.outputVolume = dbToLinear(db)
+    }
+
+    func installMeterTap(for app: CaptureApp, callback: @escaping @Sendable (MeterLevels) -> Void) {
+        guard let managed = activeStreams[app.id] else { return }
+        meterCallbacks[app.id] = callback
+
+        let bufferSize: AVAudioFrameCount = 1024
+        managed.routeMixer.installTap(onBus: 0, bufferSize: bufferSize, format: nil) { buffer, _ in
+            guard let channelData = buffer.floatChannelData else { return }
+            let frameLength = Int(buffer.frameLength)
+            guard frameLength > 0 else { return }
+
+            var rmsSum: Float = 0.0
+            var peak: Float = 0.0
+            let channelCount = Int(buffer.format.channelCount)
+
+            for ch in 0..<channelCount {
+                let samples = channelData[ch]
+                for i in 0..<frameLength {
+                    let sample = abs(samples[i])
+                    rmsSum += samples[i] * samples[i]
+                    if sample > peak { peak = sample }
+                }
+            }
+
+            let totalSamples = Float(frameLength * channelCount)
+            let rms = sqrtf(rmsSum / totalSamples)
+
+            // Clamp to 0...1
+            let clampedRMS = min(rms, 1.0)
+            let clampedPeak = min(peak, 1.0)
+
+            callback(MeterLevels(rms: clampedRMS, peak: clampedPeak))
+        }
+    }
+
+    func removeMeterTap(for app: CaptureApp) {
+        guard let managed = activeStreams[app.id] else { return }
+        managed.routeMixer.removeTap(onBus: 0)
+        meterCallbacks.removeValue(forKey: app.id)
     }
 
     // MARK: - Private
