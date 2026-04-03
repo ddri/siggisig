@@ -17,7 +17,7 @@ struct ContentView: View {
                 viewModel.startRefreshTimer()
             }
         }
-        .frame(width: 600, height: 450)
+        .frame(width: 700, height: 500)
     }
 
     private var mainView: some View {
@@ -33,9 +33,17 @@ struct ContentView: View {
 
                 Divider()
 
-                ActiveRoutesView(
+                MixerView(
                     routes: viewModel.routerState.routes,
-                    maxSlots: viewModel.routerState.maxSlots
+                    pendingRoutes: viewModel.pendingRoutes,
+                    meterLevels: viewModel.meterLevels,
+                    maxSlots: viewModel.routerState.maxSlots,
+                    onVolumeChange: { pid, db in
+                        viewModel.setVolume(for: pid, db: db)
+                    },
+                    iconForBundle: { bundleID in
+                        viewModel.availableApps.first(where: { $0.bundleIdentifier == bundleID })?.icon
+                    }
                 )
                 .frame(maxWidth: .infinity)
             }
