@@ -6,6 +6,7 @@ struct Route: Identifiable, Equatable {
     let bundleID: String?
     let pid: pid_t
     let slot: Int
+    var volume: Float = 0.0  // dB, 0.0 = unity gain
 
     var channelPair: String { Self.channelPairLabel(for: slot) }
 
@@ -40,5 +41,10 @@ struct RouterState {
 
     func slotFor(pid: pid_t) -> Int? {
         routes.first { $0.pid == pid }?.slot
+    }
+
+    mutating func setVolume(pid: pid_t, volume: Float) {
+        guard let index = routes.firstIndex(where: { $0.pid == pid }) else { return }
+        routes[index].volume = volume
     }
 }

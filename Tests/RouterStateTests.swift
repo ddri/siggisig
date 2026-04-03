@@ -29,3 +29,16 @@ import Testing
     #expect(Route.channelPairLabel(for: 1) == "Ch 3-4")
     #expect(Route.channelPairLabel(for: 7) == "Ch 15-16")
 }
+
+@Test func testRouteDefaultVolume() {
+    var state = RouterState()
+    state.addRoute(appName: "Chrome", bundleID: "com.google.Chrome", pid: 123, slot: 0)
+    #expect(state.routes[0].volume == 0.0)
+}
+
+@Test func testSetVolume() {
+    var state = RouterState()
+    state.addRoute(appName: "Chrome", bundleID: "com.google.Chrome", pid: 123, slot: 0)
+    state.setVolume(pid: 123, volume: -6.0)
+    #expect(state.routes[0].volume == -6.0)
+}
