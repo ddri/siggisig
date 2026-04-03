@@ -59,13 +59,19 @@ final class AudioCaptureEngine {
         try engine.start()
     }
 
-    func startCapture(for app: CaptureApp) async throws -> Int {
+    func startCapture(for app: CaptureApp, preferredSlot: Int? = nil) async throws -> Int {
         if let existing = activeStreams[app.id] {
             return existing.channelSlot
         }
 
-        guard let slot = nextFreeSlot() else {
-            throw AudioCaptureError.noSlotsAvailable
+        let slot: Int
+        if let preferred = preferredSlot, !activeStreams.values.contains(where: { $0.channelSlot == preferred }) {
+            slot = preferred
+        } else {
+            guard let freeSlot = nextFreeSlot() else {
+                throw AudioCaptureError.noSlotsAvailable
+            }
+            slot = freeSlot
         }
 
         let playerNode = AVAudioPlayerNode()

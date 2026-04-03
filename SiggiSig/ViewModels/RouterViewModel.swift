@@ -9,12 +9,14 @@ final class RouterViewModel {
     var isSetupComplete = false
     var errorMessage: String?
     var meterLevels: [pid_t: MeterLevels] = [:]
+    var pendingRoutes: [SavedRoute] = []
 
     private let engine = AudioCaptureEngine()
     private let sessionStore = SessionStore()
     private var saveTimer: Timer?
     private var refreshTimer: Timer?
     private var workspaceObserver: NSObjectProtocol?
+    private var launchObserver: NSObjectProtocol?
     private var audioDevicePropertyAddress = AudioObjectPropertyAddress(
         mSelector: kAudioHardwarePropertyDevices,
         mScope: kAudioObjectPropertyScopeGlobal,
@@ -27,6 +29,9 @@ final class RouterViewModel {
             saveTimer?.invalidate()
             refreshTimer?.invalidate()
             if let observer = workspaceObserver {
+                NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            }
+            if let observer = launchObserver {
                 NSWorkspace.shared.notificationCenter.removeObserver(observer)
             }
             if let block = audioDeviceListenerBlock {
@@ -52,6 +57,7 @@ final class RouterViewModel {
         }
         observeWorkspace()
         observeAudioDevices()
+        restoreSession()
     }
 
     func refreshApps() {
@@ -147,8 +153,43 @@ final class RouterViewModel {
         }
     }
 
+    private func restoreSession() {
+        guard let savedRoutes = try? sessionStore.load(), !savedRoutes.isEmpty else { return }
+
+        let runningApps = AppDiscovery.runningApps()
+
+        for saved in savedRoutes {
+            if let app = runningApps.first(where: { $0.bundleIdentifier == saved.bundleID }) {
+                Task {
+                    do {
+                        let slot = try await engine.startCapture(for: app, preferredSlot: saved.channelSlot)
+                        routerState.addRoute(
+                            appName: app.name,
+                            bundleID: app.bundleIdentifier,
+                            pid: app.id,
+                            slot: slot
+                        )
+                        routerState.setVolume(pid: app.id, volume: saved.volume)
+                        engine.setVolume(for: app, db: saved.volume)
+                        let pid = app.id
+                        engine.installMeterTap(for: app) { [weak self] levels in
+                            Task { @MainActor in
+                                self?.meterLevels[pid] = levels
+                            }
+                        }
+                    } catch {
+                        // If restore fails for one app, continue with others
+                    }
+                }
+            } else {
+                pendingRoutes.append(saved)
+            }
+        }
+    }
+
     private func observeWorkspace() {
         let center = NSWorkspace.shared.notificationCenter
+
         workspaceObserver = center.addObserver(
             forName: NSWorkspace.didTerminateApplicationNotification,
             object: nil,
@@ -158,6 +199,50 @@ final class RouterViewModel {
             let pid = app.processIdentifier
             Task { @MainActor in
                 self?.routerState.removeRoute(pid: pid)
+                self?.meterLevels.removeValue(forKey: pid)
+                self?.scheduleSave()
+            }
+        }
+
+        launchObserver = center.addObserver(
+            forName: NSWorkspace.didLaunchApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let nsApp = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                  let bundleID = nsApp.bundleIdentifier else { return }
+            Task { @MainActor in
+                self?.handleAppLaunched(bundleID: bundleID, pid: nsApp.processIdentifier)
+            }
+        }
+    }
+
+    private func handleAppLaunched(bundleID: String, pid: pid_t) {
+        guard let pendingIndex = pendingRoutes.firstIndex(where: { $0.bundleID == bundleID }) else { return }
+        let saved = pendingRoutes.remove(at: pendingIndex)
+
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            let apps = AppDiscovery.runningApps()
+            guard let app = apps.first(where: { $0.bundleIdentifier == bundleID }) else { return }
+            do {
+                let slot = try await engine.startCapture(for: app, preferredSlot: saved.channelSlot)
+                routerState.addRoute(
+                    appName: app.name,
+                    bundleID: app.bundleIdentifier,
+                    pid: app.id,
+                    slot: slot
+                )
+                routerState.setVolume(pid: app.id, volume: saved.volume)
+                engine.setVolume(for: app, db: saved.volume)
+                let appPid = app.id
+                engine.installMeterTap(for: app) { [weak self] levels in
+                    Task { @MainActor in
+                        self?.meterLevels[appPid] = levels
+                    }
+                }
+            } catch {
+                pendingRoutes.append(saved)
             }
         }
     }
