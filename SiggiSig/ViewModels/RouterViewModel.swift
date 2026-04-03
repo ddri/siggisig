@@ -8,8 +8,11 @@ final class RouterViewModel {
     var routerState = RouterState()
     var isSetupComplete = false
     var errorMessage: String?
+    var meterLevels: [pid_t: MeterLevels] = [:]
 
     private let engine = AudioCaptureEngine()
+    private let sessionStore = SessionStore()
+    private var saveTimer: Timer?
     private var refreshTimer: Timer?
     private var workspaceObserver: NSObjectProtocol?
     private var audioDevicePropertyAddress = AudioObjectPropertyAddress(
@@ -21,6 +24,7 @@ final class RouterViewModel {
 
     deinit {
         MainActor.assumeIsolated {
+            saveTimer?.invalidate()
             refreshTimer?.invalidate()
             if let observer = workspaceObserver {
                 NSWorkspace.shared.notificationCenter.removeObserver(observer)
@@ -74,6 +78,8 @@ final class RouterViewModel {
             if engine.isCapturing(app) {
                 await engine.stopCapture(for: app)
                 routerState.removeRoute(pid: app.id)
+                meterLevels.removeValue(forKey: app.id)
+                scheduleSave()
             } else {
                 do {
                     let slot = try await engine.startCapture(for: app)
@@ -83,12 +89,28 @@ final class RouterViewModel {
                         pid: app.id,
                         slot: slot
                     )
+                    let pid = app.id
+                    engine.installMeterTap(for: app) { [weak self] levels in
+                        Task { @MainActor in
+                            self?.meterLevels[pid] = levels
+                        }
+                    }
+                    scheduleSave()
                     errorMessage = nil
                 } catch {
                     errorMessage = error.localizedDescription
                 }
             }
         }
+    }
+
+    func setVolume(for pid: pid_t, db: Float) {
+        routerState.setVolume(pid: pid, volume: db)
+        if let route = routerState.routes.first(where: { $0.pid == pid }) {
+            let fakeApp = CaptureApp(id: pid, name: route.appName, bundleIdentifier: route.bundleID, icon: nil)
+            engine.setVolume(for: fakeApp, db: db)
+        }
+        scheduleSave()
     }
 
     func isRouted(_ app: CaptureApp) -> Bool {
@@ -98,6 +120,31 @@ final class RouterViewModel {
     func channelLabel(for app: CaptureApp) -> String? {
         guard let slot = routerState.slotFor(pid: app.id) else { return nil }
         return Route.channelPairLabel(for: slot)
+    }
+
+    private func scheduleSave() {
+        saveTimer?.invalidate()
+        saveTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.saveSession()
+            }
+        }
+    }
+
+    private func saveSession() {
+        let savedRoutes = routerState.routes.map { route in
+            SavedRoute(
+                bundleID: route.bundleID ?? "",
+                appName: route.appName,
+                channelSlot: route.slot,
+                volume: route.volume
+            )
+        }
+        do {
+            try sessionStore.save(routes: savedRoutes)
+        } catch {
+            // Session save failures are non-fatal, don't show to user
+        }
     }
 
     private func observeWorkspace() {
