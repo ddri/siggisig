@@ -8,7 +8,6 @@ struct MixerStripView: View {
     let meterLevels: MeterLevels?
     @Binding var volume: Float
 
-    @State private var displayedPeak: Float = 0.0
     @State private var peakHoldValue: Float = 0.0
     @State private var peakHoldTimer: Timer?
 

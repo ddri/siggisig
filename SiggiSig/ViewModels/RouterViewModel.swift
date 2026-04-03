@@ -138,7 +138,7 @@ final class RouterViewModel {
     }
 
     private func saveSession() {
-        let savedRoutes = routerState.routes.map { route in
+        var savedRoutes = routerState.routes.map { route in
             SavedRoute(
                 bundleID: route.bundleID ?? "",
                 appName: route.appName,
@@ -146,6 +146,7 @@ final class RouterViewModel {
                 volume: route.volume
             )
         }
+        savedRoutes.append(contentsOf: pendingRoutes)
         do {
             try sessionStore.save(routes: savedRoutes)
         } catch {
