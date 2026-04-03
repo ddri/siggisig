@@ -9,16 +9,21 @@
 /* Begin PBXBuildFile section */
 		003CE7B153069FB4C7533AEF /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */; };
 		074DE0C06FCBC5A7E37551D1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */; };
+		0A8096AED4368B0DB74ED260 /* MixerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FECE6612D8A23F439F4A7F /* MixerView.swift */; };
+		1462EE93095497343D1E8869 /* MixerStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9F6742ED59750847140E72 /* MixerStripView.swift */; };
+		17AECB365AF8414B0D164619 /* VerticalSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634F2FEA181075F9EF65EFEC /* VerticalSlider.swift */; };
 		3038309D6106960BA1AF3051 /* PlaceholderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16D2343A516FA36418D63BB /* PlaceholderTests.swift */; };
 		350E4E30CA3183A71AAAFFBE /* RouterStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */; };
 		442ABBD1CAE409D4A5579A29 /* AppDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */; };
+		4539206B4357FA36D26901FA /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7276A1AFE98D1A3BD1B4DA /* SessionStoreTests.swift */; };
 		61B4DFAAC2525EDF5C71CAC2 /* SiggiSigApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */; };
 		6619B2088CC7E637B1DD1AC7 /* RouterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D629484ACA19EF4D6A82E82 /* RouterViewModel.swift */; };
 		86142EF1E5304D2BFCFDAB95 /* SetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17572707AF71D71D6F152AC /* SetupWizardView.swift */; };
 		919F625B7901FCEFE50E5F41 /* AppAudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */; };
 		A0237EBA86FF2E60516BBA2D /* AudioDeviceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */; };
-		B28126114350C9920E71494E /* ActiveRoutesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB120ED23668EB2075566517 /* ActiveRoutesView.swift */; };
+		B6CA75C7E0F76C00DDD0C04C /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563F87DE935D072DC7C2B938 /* SessionStore.swift */; };
 		D27AFCD0E1B9D089D8964882 /* AudioDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A113F3C56B427B32B547A684 /* AudioDeviceManager.swift */; };
+		D3996BF923B22894D33D3AB1 /* MeterBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2835C2BD14B237E6FD622BBA /* MeterBarView.swift */; };
 		DD0E2A829B2B40AD9D079969 /* RouterState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE48CEF3C1F42B2EEC90C053 /* RouterState.swift */; };
 		EA79B5ED57D258202F570202 /* AppListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296BAD4FAB55E3E71619BF79 /* AppListView.swift */; };
 		F072E5D7F4F697748A4A745D /* AppDiscoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F16766706F4A3E04BD9AB5 /* AppDiscoveryTests.swift */; };
@@ -38,20 +43,25 @@
 /* Begin PBXFileReference section */
 		16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAudioStream.swift; sourceTree = "<group>"; };
 		19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiscovery.swift; sourceTree = "<group>"; };
+		2835C2BD14B237E6FD622BBA /* MeterBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterBarView.swift; sourceTree = "<group>"; };
 		296BAD4FAB55E3E71619BF79 /* AppListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppListView.swift; sourceTree = "<group>"; };
 		2CC15717A34D62913D03EEC2 /* AudioCaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureEngine.swift; sourceTree = "<group>"; };
 		3D629484ACA19EF4D6A82E82 /* RouterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterViewModel.swift; sourceTree = "<group>"; };
 		48C1CBB6776403CCC62F09FA /* SiggiSig.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SiggiSig.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		563F87DE935D072DC7C2B938 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceManagerTests.swift; sourceTree = "<group>"; };
+		634F2FEA181075F9EF65EFEC /* VerticalSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerticalSlider.swift; sourceTree = "<group>"; };
 		694CED724CF789354915FA82 /* SiggiSigTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SiggiSigTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		91F16766706F4A3E04BD9AB5 /* AppDiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiscoveryTests.swift; sourceTree = "<group>"; };
 		A113F3C56B427B32B547A684 /* AudioDeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceManager.swift; sourceTree = "<group>"; };
 		A16D2343A516FA36418D63BB /* PlaceholderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTests.swift; sourceTree = "<group>"; };
+		AA7276A1AFE98D1A3BD1B4DA /* SessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTests.swift; sourceTree = "<group>"; };
+		AA9F6742ED59750847140E72 /* MixerStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixerStripView.swift; sourceTree = "<group>"; };
 		AE48CEF3C1F42B2EEC90C053 /* RouterState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterState.swift; sourceTree = "<group>"; };
+		B1FECE6612D8A23F439F4A7F /* MixerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixerView.swift; sourceTree = "<group>"; };
 		B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiggiSigApp.swift; sourceTree = "<group>"; };
 		BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
-		CB120ED23668EB2075566517 /* ActiveRoutesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRoutesView.swift; sourceTree = "<group>"; };
 		E17572707AF71D71D6F152AC /* SetupWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupWizardView.swift; sourceTree = "<group>"; };
 		EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterStateTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -64,6 +74,7 @@
 				624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */,
 				A16D2343A516FA36418D63BB /* PlaceholderTests.swift */,
 				EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */,
+				AA7276A1AFE98D1A3BD1B4DA /* SessionStoreTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -71,10 +82,13 @@
 		453204835DB1EAC8F0E0E995 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				CB120ED23668EB2075566517 /* ActiveRoutesView.swift */,
 				296BAD4FAB55E3E71619BF79 /* AppListView.swift */,
+				2835C2BD14B237E6FD622BBA /* MeterBarView.swift */,
+				AA9F6742ED59750847140E72 /* MixerStripView.swift */,
+				B1FECE6612D8A23F439F4A7F /* MixerView.swift */,
 				E17572707AF71D71D6F152AC /* SetupWizardView.swift */,
 				BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */,
+				634F2FEA181075F9EF65EFEC /* VerticalSlider.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -132,6 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				AE48CEF3C1F42B2EEC90C053 /* RouterState.swift */,
+				563F87DE935D072DC7C2B938 /* SessionStore.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -223,6 +238,7 @@
 				A0237EBA86FF2E60516BBA2D /* AudioDeviceManagerTests.swift in Sources */,
 				3038309D6106960BA1AF3051 /* PlaceholderTests.swift in Sources */,
 				350E4E30CA3183A71AAAFFBE /* RouterStateTests.swift in Sources */,
+				4539206B4357FA36D26901FA /* SessionStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,18 +246,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B28126114350C9920E71494E /* ActiveRoutesView.swift in Sources */,
 				919F625B7901FCEFE50E5F41 /* AppAudioStream.swift in Sources */,
 				442ABBD1CAE409D4A5579A29 /* AppDiscovery.swift in Sources */,
 				EA79B5ED57D258202F570202 /* AppListView.swift in Sources */,
 				F24542BC888922698C22E2CE /* AudioCaptureEngine.swift in Sources */,
 				D27AFCD0E1B9D089D8964882 /* AudioDeviceManager.swift in Sources */,
 				074DE0C06FCBC5A7E37551D1 /* ContentView.swift in Sources */,
+				D3996BF923B22894D33D3AB1 /* MeterBarView.swift in Sources */,
+				1462EE93095497343D1E8869 /* MixerStripView.swift in Sources */,
+				0A8096AED4368B0DB74ED260 /* MixerView.swift in Sources */,
 				DD0E2A829B2B40AD9D079969 /* RouterState.swift in Sources */,
 				6619B2088CC7E637B1DD1AC7 /* RouterViewModel.swift in Sources */,
+				B6CA75C7E0F76C00DDD0C04C /* SessionStore.swift in Sources */,
 				86142EF1E5304D2BFCFDAB95 /* SetupWizardView.swift in Sources */,
 				61B4DFAAC2525EDF5C71CAC2 /* SiggiSigApp.swift in Sources */,
 				003CE7B153069FB4C7533AEF /* StatusBarView.swift in Sources */,
+				17AECB365AF8414B0D164619 /* VerticalSlider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
