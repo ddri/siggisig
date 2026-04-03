@@ -11,6 +11,7 @@ final class AudioCaptureEngine {
     private struct ManagedStream {
         let appStream: AppAudioStream
         let playerNode: AVAudioPlayerNode
+        let routeMixer: AVAudioMixerNode
         let channelSlot: Int  // 0-7, maps to stereo pair
     }
 
@@ -62,17 +63,20 @@ final class AudioCaptureEngine {
         }
 
         let playerNode = AVAudioPlayerNode()
+        let routeMixer = AVAudioMixerNode()
         engine.attach(playerNode)
+        engine.attach(routeMixer)
 
-        // Connect player to mainMixerNode with stereo format
+        // Connect: playerNode → routeMixer → mainMixerNode
         guard let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2) else {
             throw AudioCaptureError.engineStartFailed
         }
-        engine.connect(playerNode, to: engine.mainMixerNode, format: stereoFormat)
+        engine.connect(playerNode, to: routeMixer, format: stereoFormat)
+        engine.connect(routeMixer, to: engine.mainMixerNode, format: stereoFormat)
 
-        // Set channel map: route stereo input to the correct pair in 16ch output
+        // Set channel map on routeMixer to route stereo to correct pair in 16ch output
         let channelMap = makeChannelMap(slot: slot, totalChannels: 16)
-        playerNode.auAudioUnit.channelMap = channelMap
+        routeMixer.auAudioUnit.channelMap = channelMap
 
         playerNode.play()
 
@@ -90,6 +94,7 @@ final class AudioCaptureEngine {
         activeStreams[app.id] = ManagedStream(
             appStream: appStream,
             playerNode: playerNode,
+            routeMixer: routeMixer,
             channelSlot: slot
         )
 
@@ -100,10 +105,13 @@ final class AudioCaptureEngine {
         guard let managed = activeStreams.removeValue(forKey: app.id) else { return }
         await managed.appStream.stop()
         let node = managed.playerNode
+        let mixer = managed.routeMixer
         let eng = self.engine
         audioQueue.sync {
+            mixer.removeTap(onBus: 0)
             node.stop()
             eng.detach(node)
+            eng.detach(mixer)
         }
     }
 
@@ -111,10 +119,13 @@ final class AudioCaptureEngine {
         for (_, managed) in activeStreams {
             await managed.appStream.stop()
             let node = managed.playerNode
+            let mixer = managed.routeMixer
             let eng = self.engine
             audioQueue.sync {
+                mixer.removeTap(onBus: 0)
                 node.stop()
                 eng.detach(node)
+                eng.detach(mixer)
             }
         }
         activeStreams.removeAll()
@@ -130,6 +141,18 @@ final class AudioCaptureEngine {
     }
 
     var activeAppCount: Int { activeStreams.count }
+
+    /// Convert dB value to linear gain with audio taper.
+    /// Range: -∞ (silent) to +6dB (≈2.0 linear)
+    private func dbToLinear(_ db: Float) -> Float {
+        if db <= -60.0 { return 0.0 }
+        return powf(10.0, db / 20.0)
+    }
+
+    func setVolume(for app: CaptureApp, db: Float) {
+        guard let managed = activeStreams[app.id] else { return }
+        managed.routeMixer.outputVolume = dbToLinear(db)
+    }
 
     // MARK: - Private
 
