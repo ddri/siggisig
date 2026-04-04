@@ -112,9 +112,10 @@ struct SetupWizardView: View {
                 .buttonStyle(.borderedProminent)
             }
         }
-        .task { await checkPermission() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            Task { await checkPermission() }
+            if permissionRequested {
+                Task { await checkPermission() }
+            }
         }
     }
 
