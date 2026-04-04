@@ -17,7 +17,7 @@ struct AppListView: View {
                     if let icon = app.icon {
                         Image(nsImage: icon)
                             .resizable()
-                            .frame(width: 20, height: 20)
+                            .frame(width: 24, height: 24)
                     }
                     Text(app.name)
                         .lineLimit(1)

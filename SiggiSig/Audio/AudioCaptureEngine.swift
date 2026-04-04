@@ -92,6 +92,8 @@ final class AudioCaptureEngine {
 
         playerNode.play()
 
+        // Swift 6 concurrency: @Sendable closures can't capture [weak self] from a
+        // @MainActor class directly. Intermediate let bindings work around this constraint.
         nonisolated(unsafe) let node = playerNode
         let queue = self.audioQueue
         let weakSelf = self

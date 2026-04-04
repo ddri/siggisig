@@ -32,7 +32,7 @@ struct SetupWizardView: View {
                 systemName: blackHoleDetected
                     ? "checkmark.circle.fill" : "speaker.wave.2.circle"
             )
-            .font(.system(size: 48))
+            .font(.largeTitle)
             .foregroundColor(blackHoleDetected ? .green : .secondary)
 
             Text("BlackHole 16ch")
@@ -70,7 +70,7 @@ struct SetupWizardView: View {
                 systemName: permissionGranted
                     ? "checkmark.circle.fill" : "rectangle.dashed.badge.record"
             )
-            .font(.system(size: 48))
+            .font(.largeTitle)
             .foregroundColor(permissionGranted ? .green : .secondary)
 
             Text("Screen Recording Permission")

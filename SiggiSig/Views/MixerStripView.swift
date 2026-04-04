@@ -49,7 +49,7 @@ struct MixerStripView: View {
 
             // dB readout
             Text(volume <= -60 ? "-∞" : String(format: "%.1f", volume))
-                .font(.system(size: 9, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundColor(.secondary)
         }
         .padding(.vertical, 8)
