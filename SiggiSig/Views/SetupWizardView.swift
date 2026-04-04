@@ -1,12 +1,9 @@
-import ScreenCaptureKit
 import SwiftUI
 
 struct SetupWizardView: View {
     @Binding var isComplete: Bool
     @State private var blackHoleDetected = false
-    @State private var permissionGranted = false
     @State private var checking = false
-    @State private var permissionRequested = false
     @State private var step = 1
 
     var body: some View {
@@ -66,55 +63,27 @@ struct SetupWizardView: View {
 
     private var permissionStep: some View {
         VStack(spacing: 16) {
-            Image(
-                systemName: permissionGranted
-                    ? "checkmark.circle.fill" : "rectangle.dashed.badge.record"
-            )
-            .font(.largeTitle)
-            .foregroundColor(permissionGranted ? .green : .secondary)
+            Image(systemName: "rectangle.dashed.badge.record")
+                .font(.largeTitle)
+                .foregroundColor(.secondary)
 
             Text("Screen Recording Permission")
                 .font(.headline)
 
-            if permissionGranted {
-                Text("Permission granted!")
-                    .foregroundColor(.green)
-                Button("Get Started") { isComplete = true }
-                    .buttonStyle(.borderedProminent)
-            } else if permissionRequested {
-                Text(
-                    "If no prompt appeared, you'll need to add SiggiSig manually in System Settings."
-                )
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            Text(
+                "SiggiSig needs Screen Recording permission to capture audio from individual apps. Please make sure SiggiSig is enabled in System Settings."
+            )
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
 
-                VStack(spacing: 8) {
-                    Button("Open System Settings") {
-                        openScreenRecordingSettings()
-                    }
-                    .buttonStyle(.borderedProminent)
-
-                    Button("Check Again") {
-                        Task { await checkPermission() }
-                    }
-                    .buttonStyle(.bordered)
-                }
-            } else {
-                Text(
-                    "SiggiSig needs this permission to capture audio from individual apps."
-                )
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-
-                Button("Request Permission") {
-                    Task { await requestPermission() }
+            VStack(spacing: 8) {
+                Button("Open System Settings") {
+                    openScreenRecordingSettings()
                 }
                 .buttonStyle(.borderedProminent)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            if permissionRequested {
-                Task { await checkPermission() }
+
+                Button("Continue") { isComplete = true }
+                    .buttonStyle(.bordered)
             }
         }
     }
@@ -123,27 +92,6 @@ struct SetupWizardView: View {
         checking = true
         blackHoleDetected = AudioDeviceManager.findDevice(named: "BlackHole 16ch") != nil
         checking = false
-    }
-
-    private func checkPermission() async {
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(
-                false, onScreenWindowsOnly: false)
-            permissionGranted = true
-        } catch {
-            permissionGranted = false
-        }
-    }
-
-    private func requestPermission() async {
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(
-                false, onScreenWindowsOnly: false)
-            permissionGranted = true
-        } catch {
-            permissionGranted = false
-        }
-        permissionRequested = true
     }
 
     private func openScreenRecordingSettings() {
