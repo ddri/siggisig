@@ -1,7 +1,7 @@
 @preconcurrency import AVFoundation
 import CoreAudio
 
-struct MeterLevels: Sendable {
+struct MeterLevels: Sendable, Equatable {
     let rms: Float      // 0.0 to 1.0
     let peak: Float     // 0.0 to 1.0
 }

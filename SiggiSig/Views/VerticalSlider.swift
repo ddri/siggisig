@@ -4,6 +4,9 @@ struct VerticalSlider: View {
     @Binding var value: Float
     let range: ClosedRange<Float>
 
+    @State private var isDragging = false
+    @State private var dragStartValue: Float = 0
+
     var body: some View {
         GeometryReader { geo in
             let height = geo.size.height
@@ -30,15 +33,24 @@ struct VerticalSlider: View {
                     .frame(width: 18, height: 10)
                     .shadow(radius: 1)
                     .offset(y: thumbY - height / 2)
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { drag in
-                                let normalized = 1.0 - (drag.location.y / height)
-                                let clamped = min(max(normalized, 0), 1)
-                                value = Float(clamped) * (range.upperBound - range.lowerBound) + range.lowerBound
-                            }
-                    )
             }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { drag in
+                        if !isDragging {
+                            isDragging = true
+                            dragStartValue = value
+                        }
+                        let deltaY = drag.translation.height
+                        let deltaNorm = Float(deltaY / height)
+                        let newValue = dragStartValue - deltaNorm * (range.upperBound - range.lowerBound)
+                        value = min(max(newValue, range.lowerBound), range.upperBound)
+                    }
+                    .onEnded { _ in
+                        isDragging = false
+                    }
+            )
         }
     }
 }
