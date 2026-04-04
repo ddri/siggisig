@@ -23,9 +23,12 @@ final class SessionStore {
         if let directory {
             self.directory = directory
         } else {
-            let appSupport = FileManager.default.urls(
+            guard let appSupport = FileManager.default.urls(
                 for: .applicationSupportDirectory, in: .userDomainMask
-            ).first!
+            ).first else {
+                self.directory = FileManager.default.temporaryDirectory.appendingPathComponent("SiggiSig")
+                return
+            }
             self.directory = appSupport.appendingPathComponent("SiggiSig")
         }
     }

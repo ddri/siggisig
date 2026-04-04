@@ -21,7 +21,7 @@ struct SetupWizardView: View {
                 permissionStep
             }
         }
-        .padding(40)
+        .padding(32)
         .frame(width: 480)
         .task { await checkBlackHole() }
     }

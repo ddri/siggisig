@@ -7,10 +7,10 @@ struct AppListView: View {
     let onToggle: (CaptureApp) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Available Apps")
                 .font(.headline)
-                .padding(.bottom, 4)
+                .padding(.bottom, 8)
 
             List(apps) { app in
                 HStack {

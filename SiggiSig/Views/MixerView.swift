@@ -12,7 +12,7 @@ struct MixerView: View {
         VStack(spacing: 0) {
             Text("Mixer")
                 .font(.headline)
-                .padding(.bottom, 4)
+                .padding(.bottom, 8)
 
             if routes.isEmpty && pendingRoutes.isEmpty {
                 Spacer()
@@ -62,7 +62,7 @@ struct MixerView: View {
             Text("\(freeSlots) of \(maxSlots) channels free")
                 .font(.caption2)
                 .foregroundColor(.secondary)
-                .padding(.bottom, 4)
+                .padding(.bottom, 8)
         }
     }
 }

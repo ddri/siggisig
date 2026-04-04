@@ -12,7 +12,7 @@ struct MixerStripView: View {
     @State private var peakHoldTimer: Timer?
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             // App icon and name
             if let icon {
                 Image(nsImage: icon)
@@ -53,7 +53,7 @@ struct MixerStripView: View {
                 .foregroundColor(.secondary)
         }
         .padding(.vertical, 8)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 8)
         .onChange(of: meterLevels?.peak ?? 0) { _, newPeak in
             updatePeakHold(newPeak)
         }
