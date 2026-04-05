@@ -184,7 +184,7 @@ final class AudioCaptureEngine {
 
     func setPan(for app: CaptureApp, pan: Float) {
         guard let managed = activeStreams[app.id] else { return }
-        managed.routeMixer.pan = pan
+        managed.routeMixer.pan = max(-1.0, min(1.0, pan))
     }
 
     func installMeterTap(for app: CaptureApp, callback: @escaping @Sendable (MeterLevels) -> Void) {
