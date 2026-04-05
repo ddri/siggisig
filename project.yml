@@ -15,6 +15,8 @@ targets:
         excludes:
           - Info.plist
           - SiggiSig.entitlements
+    resources:
+      - path: CHANGELOG.md
     info:
       path: SiggiSig/Info.plist
       properties:
