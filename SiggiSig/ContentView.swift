@@ -42,6 +42,9 @@ struct ContentView: View {
                     onVolumeChange: { pid, db in
                         viewModel.setVolume(for: pid, db: db)
                     },
+                    onPanChange: { pid, pan in
+                        viewModel.setPan(for: pid, pan: pan)
+                    },
                     onChannelChange: { pid, newSlot in
                         viewModel.reassignChannel(pid: pid, to: newSlot)
                     },

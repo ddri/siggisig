@@ -7,6 +7,7 @@ struct MixerView: View {
     let maxSlots: Int
     let availableSlots: [Int]
     let onVolumeChange: (pid_t, Float) -> Void
+    let onPanChange: (pid_t, Float) -> Void
     let onChannelChange: (pid_t, Int) -> Void
     let iconForBundle: (String?) -> NSImage?
 
@@ -37,6 +38,10 @@ struct MixerView: View {
                                     get: { route.volume },
                                     set: { onVolumeChange(route.pid, $0) }
                                 ),
+                                pan: Binding(
+                                    get: { route.pan },
+                                    set: { onPanChange(route.pid, $0) }
+                                ),
                                 availableSlots: availableSlots,
                                 onChannelChange: { newSlot in
                                     onChannelChange(route.pid, newSlot)
@@ -53,6 +58,7 @@ struct MixerView: View {
                                 isActive: false,
                                 meterLevels: nil,
                                 volume: .constant(saved.volume),
+                                pan: .constant(saved.pan),
                                 availableSlots: [],
                                 onChannelChange: nil
                             )
