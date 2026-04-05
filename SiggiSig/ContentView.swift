@@ -38,8 +38,12 @@ struct ContentView: View {
                     pendingRoutes: viewModel.pendingRoutes,
                     meterLevels: viewModel.meterLevels,
                     maxSlots: viewModel.routerState.maxSlots,
+                    availableSlots: viewModel.availableSlots,
                     onVolumeChange: { pid, db in
                         viewModel.setVolume(for: pid, db: db)
+                    },
+                    onChannelChange: { pid, newSlot in
+                        viewModel.reassignChannel(pid: pid, to: newSlot)
                     },
                     iconForBundle: { bundleID in
                         viewModel.availableApps.first(where: { $0.bundleIdentifier == bundleID })?.icon

@@ -119,6 +119,19 @@ final class RouterViewModel {
         scheduleSave()
     }
 
+    func reassignChannel(pid: pid_t, to newSlot: Int) {
+        guard let route = routerState.routes.first(where: { $0.pid == pid }) else { return }
+        let fakeApp = CaptureApp(id: pid, name: route.appName, bundleIdentifier: route.bundleID, icon: nil)
+        engine.reassignChannel(for: fakeApp, to: newSlot)
+        routerState.reassignSlot(pid: pid, to: newSlot)
+        scheduleSave()
+    }
+
+    var availableSlots: [Int] {
+        let used = engine.usedSlots
+        return (0..<8).filter { !used.contains($0) }
+    }
+
     func isRouted(_ app: CaptureApp) -> Bool {
         engine.isCapturing(app)
     }

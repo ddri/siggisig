@@ -7,6 +7,8 @@ struct MixerStripView: View {
     let isActive: Bool
     let meterLevels: MeterLevels?
     @Binding var volume: Float
+    let availableSlots: [Int]
+    let onChannelChange: ((Int) -> Void)?
 
     @State private var peakHoldValue: Float = 0.0
     @State private var peakHoldTimer: Timer?
@@ -42,10 +44,26 @@ struct MixerStripView: View {
             }
             .frame(height: 150)
 
-            // Channel label
-            Text(channelLabel)
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            // Channel label (clickable to reassign)
+            if isActive, let onChannelChange, !availableSlots.isEmpty {
+                Menu {
+                    ForEach(availableSlots, id: \.self) { slot in
+                        Button(Route.channelPairLabel(for: slot)) {
+                            onChannelChange(slot)
+                        }
+                    }
+                } label: {
+                    Text(channelLabel)
+                        .font(.caption2)
+                        .foregroundColor(.accentColor)
+                }
+                .menuStyle(.borderlessButton)
+                .frame(width: 60)
+            } else {
+                Text(channelLabel)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
 
             // dB readout
             Text(volume <= -60 ? "-∞" : String(format: "%.1f", volume))

@@ -5,7 +5,9 @@ struct MixerView: View {
     let pendingRoutes: [SavedRoute]
     let meterLevels: [pid_t: MeterLevels]
     let maxSlots: Int
+    let availableSlots: [Int]
     let onVolumeChange: (pid_t, Float) -> Void
+    let onChannelChange: (pid_t, Int) -> Void
     let iconForBundle: (String?) -> NSImage?
 
     var body: some View {
@@ -34,7 +36,11 @@ struct MixerView: View {
                                 volume: Binding(
                                     get: { route.volume },
                                     set: { onVolumeChange(route.pid, $0) }
-                                )
+                                ),
+                                availableSlots: availableSlots,
+                                onChannelChange: { newSlot in
+                                    onChannelChange(route.pid, newSlot)
+                                }
                             )
                         }
 
@@ -46,7 +52,9 @@ struct MixerView: View {
                                 channelLabel: Route.channelPairLabel(for: saved.channelSlot),
                                 isActive: false,
                                 meterLevels: nil,
-                                volume: .constant(saved.volume)
+                                volume: .constant(saved.volume),
+                                availableSlots: [],
+                                onChannelChange: nil
                             )
                         }
                     }

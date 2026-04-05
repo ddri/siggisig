@@ -18,7 +18,7 @@ final class AudioCaptureEngine {
         let appStream: AppAudioStream
         let playerNode: AVAudioPlayerNode
         let routeMixer: AVAudioMixerNode
-        let channelSlot: Int  // 0-7, maps to stereo pair
+        var channelSlot: Int  // 0-7, maps to stereo pair
     }
 
     var blackHoleDevice: AudioDevice? {
@@ -157,6 +157,18 @@ final class AudioCaptureEngine {
     }
 
     var activeAppCount: Int { activeStreams.count }
+
+    var usedSlots: Set<Int> {
+        Set(activeStreams.values.map(\.channelSlot))
+    }
+
+    func reassignChannel(for app: CaptureApp, to newSlot: Int) {
+        guard var managed = activeStreams[app.id] else { return }
+        let channelMap = makeChannelMap(slot: newSlot, totalChannels: 16)
+        managed.routeMixer.auAudioUnit.channelMap = channelMap
+        managed.channelSlot = newSlot
+        activeStreams[app.id] = managed
+    }
 
     /// Convert dB value to linear gain with audio taper.
     /// Range: -∞ (silent) to +6dB (≈2.0 linear)

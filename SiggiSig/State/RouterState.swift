@@ -5,7 +5,7 @@ struct Route: Identifiable, Equatable {
     let appName: String
     let bundleID: String?
     let pid: pid_t
-    let slot: Int
+    var slot: Int
     var volume: Float = 0.0  // dB, 0.0 = unity gain
 
     var channelPair: String { Self.channelPairLabel(for: slot) }
@@ -46,5 +46,10 @@ struct RouterState {
     mutating func setVolume(pid: pid_t, volume: Float) {
         guard let index = routes.firstIndex(where: { $0.pid == pid }) else { return }
         routes[index].volume = volume
+    }
+
+    mutating func reassignSlot(pid: pid_t, to newSlot: Int) {
+        guard let index = routes.firstIndex(where: { $0.pid == pid }) else { return }
+        routes[index].slot = newSlot
     }
 }
