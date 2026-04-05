@@ -7,6 +7,7 @@ struct Route: Identifiable, Equatable {
     let pid: pid_t
     var slot: Int
     var volume: Float = 0.0  // dB, 0.0 = unity gain
+    var pan: Float = 0.0     // -1.0 (left) to +1.0 (right), 0.0 = center
 
     var channelPair: String { Self.channelPairLabel(for: slot) }
 
@@ -46,6 +47,11 @@ struct RouterState {
     mutating func setVolume(pid: pid_t, volume: Float) {
         guard let index = routes.firstIndex(where: { $0.pid == pid }) else { return }
         routes[index].volume = volume
+    }
+
+    mutating func setPan(pid: pid_t, pan: Float) {
+        guard let index = routes.firstIndex(where: { $0.pid == pid }) else { return }
+        routes[index].pan = min(max(pan, -1.0), 1.0)
     }
 
     mutating func reassignSlot(pid: pid_t, to newSlot: Int) {

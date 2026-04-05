@@ -42,3 +42,25 @@ import Testing
     state.setVolume(pid: 123, volume: -6.0)
     #expect(state.routes[0].volume == -6.0)
 }
+
+@Test func testRouteDefaultPanIsCenter() {
+    var state = RouterState()
+    state.addRoute(appName: "Test", bundleID: "com.test", pid: 100, slot: 0)
+    #expect(state.routes.first?.pan == 0.0)
+}
+
+@Test func testSetPan() {
+    var state = RouterState()
+    state.addRoute(appName: "Test", bundleID: "com.test", pid: 100, slot: 0)
+    state.setPan(pid: 100, pan: -0.5)
+    #expect(state.routes.first?.pan == -0.5)
+}
+
+@Test func testSetPanClampsToRange() {
+    var state = RouterState()
+    state.addRoute(appName: "Test", bundleID: "com.test", pid: 100, slot: 0)
+    state.setPan(pid: 100, pan: 2.0)
+    #expect(state.routes.first?.pan == 1.0)
+    state.setPan(pid: 100, pan: -2.0)
+    #expect(state.routes.first?.pan == -1.0)
+}
