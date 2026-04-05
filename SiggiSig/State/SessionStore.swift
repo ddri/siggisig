@@ -5,7 +5,7 @@ struct SavedRoute: Codable, Equatable {
     let appName: String
     let channelSlot: Int
     let volume: Float
-    var pan: Float = 0.0
+    let pan: Float
 
     // Backward-compatible decoding for sessions saved before pan was added
     init(from decoder: Decoder) throws {
