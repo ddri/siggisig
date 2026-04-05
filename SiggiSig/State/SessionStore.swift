@@ -5,6 +5,25 @@ struct SavedRoute: Codable, Equatable {
     let appName: String
     let channelSlot: Int
     let volume: Float
+    let pan: Float
+
+    // Backward-compatible decoding for sessions saved before pan was added
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        bundleID = try container.decode(String.self, forKey: .bundleID)
+        appName = try container.decode(String.self, forKey: .appName)
+        channelSlot = try container.decode(Int.self, forKey: .channelSlot)
+        volume = try container.decode(Float.self, forKey: .volume)
+        pan = try container.decodeIfPresent(Float.self, forKey: .pan) ?? 0.0
+    }
+
+    init(bundleID: String, appName: String, channelSlot: Int, volume: Float, pan: Float = 0.0) {
+        self.bundleID = bundleID
+        self.appName = appName
+        self.channelSlot = channelSlot
+        self.volume = volume
+        self.pan = pan
+    }
 }
 
 struct SessionData: Codable {

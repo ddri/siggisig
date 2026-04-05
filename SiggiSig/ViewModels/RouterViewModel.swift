@@ -119,6 +119,15 @@ final class RouterViewModel {
         scheduleSave()
     }
 
+    func setPan(for pid: pid_t, pan: Float) {
+        routerState.setPan(pid: pid, pan: pan)
+        if let route = routerState.routes.first(where: { $0.pid == pid }) {
+            let fakeApp = CaptureApp(id: pid, name: route.appName, bundleIdentifier: route.bundleID, icon: nil)
+            engine.setPan(for: fakeApp, pan: pan)
+        }
+        scheduleSave()
+    }
+
     func reassignChannel(pid: pid_t, to newSlot: Int) {
         guard let route = routerState.routes.first(where: { $0.pid == pid }) else { return }
         let fakeApp = CaptureApp(id: pid, name: route.appName, bundleIdentifier: route.bundleID, icon: nil)
@@ -156,7 +165,8 @@ final class RouterViewModel {
                 bundleID: route.bundleID ?? "",
                 appName: route.appName,
                 channelSlot: route.slot,
-                volume: route.volume
+                volume: route.volume,
+                pan: route.pan
             )
         }
         savedRoutes.append(contentsOf: pendingRoutes)
@@ -185,6 +195,8 @@ final class RouterViewModel {
                         )
                         routerState.setVolume(pid: app.id, volume: saved.volume)
                         engine.setVolume(for: app, db: saved.volume)
+                        routerState.setPan(pid: app.id, pan: saved.pan)
+                        engine.setPan(for: app, pan: saved.pan)
                         let pid = app.id
                         engine.installMeterTap(for: app) { [weak self] levels in
                             Task { @MainActor in
@@ -249,6 +261,8 @@ final class RouterViewModel {
                 )
                 routerState.setVolume(pid: app.id, volume: saved.volume)
                 engine.setVolume(for: app, db: saved.volume)
+                routerState.setPan(pid: app.id, pan: saved.pan)
+                engine.setPan(for: app, pan: saved.pan)
                 let appPid = app.id
                 engine.installMeterTap(for: app) { [weak self] levels in
                     Task { @MainActor in

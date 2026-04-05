@@ -7,6 +7,7 @@ struct MixerStripView: View {
     let isActive: Bool
     let meterLevels: MeterLevels?
     @Binding var volume: Float
+    @Binding var pan: Float
     let availableSlots: [Int]
     let onChannelChange: ((Int) -> Void)?
 
@@ -44,6 +45,19 @@ struct MixerStripView: View {
             }
             .frame(height: 150)
 
+            // Pan control
+            VStack(spacing: 2) {
+                Slider(value: $pan, in: -1.0...1.0)
+                    .frame(width: 56)
+                    .disabled(!isActive)
+                Text(panLabel)
+                    .font(.system(size: 9).monospaced())
+                    .foregroundColor(.secondary)
+                    .onTapGesture(count: 2) {
+                        pan = 0.0
+                    }
+            }
+
             // Channel label (clickable to reassign)
             if isActive, let onChannelChange, !availableSlots.isEmpty {
                 Menu {
@@ -75,6 +89,12 @@ struct MixerStripView: View {
         .onChange(of: meterLevels?.peak ?? 0) { _, newPeak in
             updatePeakHold(newPeak)
         }
+    }
+
+    private var panLabel: String {
+        if abs(pan) < 0.05 { return "C" }
+        if pan < 0 { return String(format: "L%.0f", abs(pan) * 100) }
+        return String(format: "R%.0f", pan * 100)
     }
 
     private func updatePeakHold(_ newPeak: Float) {
