@@ -156,7 +156,8 @@ final class RouterViewModel {
                 bundleID: route.bundleID ?? "",
                 appName: route.appName,
                 channelSlot: route.slot,
-                volume: route.volume
+                volume: route.volume,
+                pan: route.pan
             )
         }
         savedRoutes.append(contentsOf: pendingRoutes)
@@ -185,6 +186,7 @@ final class RouterViewModel {
                         )
                         routerState.setVolume(pid: app.id, volume: saved.volume)
                         engine.setVolume(for: app, db: saved.volume)
+                        routerState.setPan(pid: app.id, pan: saved.pan)
                         let pid = app.id
                         engine.installMeterTap(for: app) { [weak self] levels in
                             Task { @MainActor in
@@ -249,6 +251,7 @@ final class RouterViewModel {
                 )
                 routerState.setVolume(pid: app.id, volume: saved.volume)
                 engine.setVolume(for: app, db: saved.volume)
+                routerState.setPan(pid: app.id, pan: saved.pan)
                 let appPid = app.id
                 engine.installMeterTap(for: app) { [weak self] levels in
                     Task { @MainActor in
