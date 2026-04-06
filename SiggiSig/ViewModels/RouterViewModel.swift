@@ -50,14 +50,30 @@ final class RouterViewModel {
     }
 
     func setup() {
-        do {
-            try engine.setup()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        setupEngine()
         observeWorkspace()
         observeAudioDevices()
         restoreSession()
+    }
+
+    private func setupEngine() {
+        do {
+            try engine.setup()
+            errorMessage = nil
+        } catch {
+            errorMessage = "Failed to start audio engine"
+            // Retry once after a short delay — BlackHole may not be ready yet
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                do {
+                    try engine.setup()
+                    errorMessage = nil
+                    restoreSession()
+                } catch {
+                    errorMessage = "Failed to start audio engine"
+                }
+            }
+        }
     }
 
     func refreshApps() {
@@ -89,6 +105,7 @@ final class RouterViewModel {
             } else {
                 do {
                     let slot = try await engine.startCapture(for: app)
+                    errorMessage = nil
                     routerState.addRoute(
                         appName: app.name,
                         bundleID: app.bundleIdentifier,
