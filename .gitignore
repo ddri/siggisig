@@ -26,3 +26,6 @@ Package.resolved
 .vscode/
 *.xcuserstate
 .worktrees/
+
+# Claude Code
+.claude/
