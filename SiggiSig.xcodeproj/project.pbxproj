@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		003CE7B153069FB4C7533AEF /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */; };
+		066B08530D907051C96560B5 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = BDD01819671195A16866E8AA /* CHANGELOG.md */; };
 		074DE0C06FCBC5A7E37551D1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */; };
 		0A8096AED4368B0DB74ED260 /* MixerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FECE6612D8A23F439F4A7F /* MixerView.swift */; };
 		1462EE93095497343D1E8869 /* MixerStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9F6742ED59750847140E72 /* MixerStripView.swift */; };
@@ -17,10 +18,10 @@
 		442ABBD1CAE409D4A5579A29 /* AppDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */; };
 		4539206B4357FA36D26901FA /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7276A1AFE98D1A3BD1B4DA /* SessionStoreTests.swift */; };
 		61B4DFAAC2525EDF5C71CAC2 /* SiggiSigApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */; };
-		632E5D942F83714C00709B88 /* ChangelogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632E5D932F83714C00709B88 /* ChangelogView.swift */; };
 		6619B2088CC7E637B1DD1AC7 /* RouterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D629484ACA19EF4D6A82E82 /* RouterViewModel.swift */; };
 		86142EF1E5304D2BFCFDAB95 /* SetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17572707AF71D71D6F152AC /* SetupWizardView.swift */; };
 		919F625B7901FCEFE50E5F41 /* AppAudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */; };
+		95C5C695A790DD1F5926C115 /* ChangelogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28322B57F332B303DA361E3A /* ChangelogView.swift */; };
 		A0237EBA86FF2E60516BBA2D /* AudioDeviceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */; };
 		B6CA75C7E0F76C00DDD0C04C /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563F87DE935D072DC7C2B938 /* SessionStore.swift */; };
 		D27AFCD0E1B9D089D8964882 /* AudioDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A113F3C56B427B32B547A684 /* AudioDeviceManager.swift */; };
@@ -44,6 +45,7 @@
 /* Begin PBXFileReference section */
 		16D83D0D66DFFB84CA22CC2F /* AppAudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAudioStream.swift; sourceTree = "<group>"; };
 		19F7957EA5E0586AFF34F875 /* AppDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiscovery.swift; sourceTree = "<group>"; };
+		28322B57F332B303DA361E3A /* ChangelogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogView.swift; sourceTree = "<group>"; };
 		2835C2BD14B237E6FD622BBA /* MeterBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterBarView.swift; sourceTree = "<group>"; };
 		296BAD4FAB55E3E71619BF79 /* AppListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppListView.swift; sourceTree = "<group>"; };
 		2CC15717A34D62913D03EEC2 /* AudioCaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureEngine.swift; sourceTree = "<group>"; };
@@ -52,8 +54,6 @@
 		563F87DE935D072DC7C2B938 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		5892D5FAB1FE9FA8DCA1D462 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		624F1A12DE2F9507FA6C15D7 /* AudioDeviceManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceManagerTests.swift; sourceTree = "<group>"; };
-		632E5D932F83714C00709B88 /* ChangelogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogView.swift; sourceTree = "<group>"; };
-		632E5D952F83717800709B88 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		634F2FEA181075F9EF65EFEC /* VerticalSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerticalSlider.swift; sourceTree = "<group>"; };
 		694CED724CF789354915FA82 /* SiggiSigTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SiggiSigTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		91F16766706F4A3E04BD9AB5 /* AppDiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiscoveryTests.swift; sourceTree = "<group>"; };
@@ -65,6 +65,7 @@
 		B1FECE6612D8A23F439F4A7F /* MixerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixerView.swift; sourceTree = "<group>"; };
 		B59E0EACB4C0618C442370FF /* SiggiSigApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiggiSigApp.swift; sourceTree = "<group>"; };
 		BB544B1D9AF4921B9FF7676F /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		BDD01819671195A16866E8AA /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		E17572707AF71D71D6F152AC /* SetupWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupWizardView.swift; sourceTree = "<group>"; };
 		EFDF34326BD5715AEDDCC48B /* RouterStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterStateTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -85,9 +86,8 @@
 		453204835DB1EAC8F0E0E995 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				632E5D952F83717800709B88 /* CHANGELOG.md */,
-				632E5D932F83714C00709B88 /* ChangelogView.swift */,
 				296BAD4FAB55E3E71619BF79 /* AppListView.swift */,
+				28322B57F332B303DA361E3A /* ChangelogView.swift */,
 				2835C2BD14B237E6FD622BBA /* MeterBarView.swift */,
 				AA9F6742ED59750847140E72 /* MixerStripView.swift */,
 				B1FECE6612D8A23F439F4A7F /* MixerView.swift */,
@@ -159,6 +159,7 @@
 		F8B3A22159D49F94A64726DC = {
 			isa = PBXGroup;
 			children = (
+				BDD01819671195A16866E8AA /* CHANGELOG.md */,
 				CA4CF25403486D25171B4B14 /* SiggiSig */,
 				3F18E27F102A284C86CFE08F /* Tests */,
 				7E5B9192C9F872AE394F4FD0 /* Products */,
@@ -191,6 +192,7 @@
 			buildConfigurationList = E77D937B42C9D8E3B3D6D666 /* Build configuration list for PBXNativeTarget "SiggiSig" */;
 			buildPhases = (
 				83751E14C4663FD1A4099E7F /* Sources */,
+				9858120AD803C133072A5260 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -211,6 +213,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 1A43BE8C6CC38B364D7B1364 /* Build configuration list for PBXProject "SiggiSig" */;
 			developmentRegion = en;
@@ -231,6 +235,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9858120AD803C133072A5260 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				066B08530D907051C96560B5 /* CHANGELOG.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		7CB38E4479BAF5FE5639132A /* Sources */ = {
@@ -254,13 +269,13 @@
 				EA79B5ED57D258202F570202 /* AppListView.swift in Sources */,
 				F24542BC888922698C22E2CE /* AudioCaptureEngine.swift in Sources */,
 				D27AFCD0E1B9D089D8964882 /* AudioDeviceManager.swift in Sources */,
+				95C5C695A790DD1F5926C115 /* ChangelogView.swift in Sources */,
 				074DE0C06FCBC5A7E37551D1 /* ContentView.swift in Sources */,
 				D3996BF923B22894D33D3AB1 /* MeterBarView.swift in Sources */,
 				1462EE93095497343D1E8869 /* MixerStripView.swift in Sources */,
 				0A8096AED4368B0DB74ED260 /* MixerView.swift in Sources */,
 				DD0E2A829B2B40AD9D079969 /* RouterState.swift in Sources */,
 				6619B2088CC7E637B1DD1AC7 /* RouterViewModel.swift in Sources */,
-				632E5D942F83714C00709B88 /* ChangelogView.swift in Sources */,
 				B6CA75C7E0F76C00DDD0C04C /* SessionStore.swift in Sources */,
 				86142EF1E5304D2BFCFDAB95 /* SetupWizardView.swift in Sources */,
 				61B4DFAAC2525EDF5C71CAC2 /* SiggiSigApp.swift in Sources */,

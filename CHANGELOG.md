@@ -2,6 +2,21 @@
 
 All notable changes to SiggiSig are documented here.
 
+## October 14, 2026
+
+### Added
+
+- Menu Bar presence with quick route overview, active route count indicator, and window controls
+- Background utility mode: closing the mixer window hides it without interrupting live DAW audio streams
+- Automated release and packaging pipeline (`scripts/package.sh`) producing codesigned `.app` and `.dmg` releases with notarization support
+- Menu option under Help to rerun the Setup Wizard anytime
+
+### Improved
+
+- Resizable main window with responsive mixer strip layout and balanced application list
+- Setup wizard completion is now remembered across launches so you can jump straight to routing
+- Removed build warnings across SwiftPM and XcodeGen
+
 ## April 6, 2026
 
 ### Added
