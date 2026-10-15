@@ -1,9 +1,11 @@
+import CoreGraphics
 import SwiftUI
 
 struct SetupWizardView: View {
     @Binding var isComplete: Bool
     @State private var blackHoleDetected = false
     @State private var checking = false
+    @State private var hasPermission = false
     @State private var step = 1
 
     var body: some View {
@@ -20,7 +22,14 @@ struct SetupWizardView: View {
         }
         .padding(32)
         .frame(width: 480)
-        .task { await checkBlackHole() }
+        .task {
+            checkPermission()
+            await checkBlackHole()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            checkPermission()
+            Task { await checkBlackHole() }
+        }
     }
 
     private var blackHoleStep: some View {
@@ -63,29 +72,64 @@ struct SetupWizardView: View {
 
     private var permissionStep: some View {
         VStack(spacing: 16) {
-            Image(systemName: "rectangle.dashed.badge.record")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
+            Image(
+                systemName: hasPermission
+                    ? "checkmark.circle.fill"
+                    : "rectangle.dashed.badge.record"
+            )
+            .font(.largeTitle)
+            .foregroundColor(hasPermission ? .green : .secondary)
 
             Text("Screen Recording Permission")
                 .font(.headline)
 
-            Text(
-                "SiggiSig needs Screen Recording permission to capture audio from individual apps. Please make sure SiggiSig is enabled in System Settings."
-            )
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
+            if hasPermission {
+                Text("Permission Granted!")
+                    .foregroundColor(.green)
+                    .fontWeight(.medium)
 
-            VStack(spacing: 8) {
-                Button("Open System Settings") {
-                    openScreenRecordingSettings()
+                Text("SiggiSig is ready to route audio from your apps.")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
+
+                Button("Get Started") {
+                    isComplete = true
                 }
                 .buttonStyle(.borderedProminent)
+            } else {
+                Text(
+                    "SiggiSig needs Screen Recording permission to capture audio from individual apps.\n\nIn System Settings, make sure the toggle switch next to SiggiSig is turned ON (blue)."
+                )
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
 
-                Button("Continue") { isComplete = true }
-                    .buttonStyle(.bordered)
+                VStack(spacing: 8) {
+                    Button("Open System Settings") {
+                        openScreenRecordingSettings()
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    HStack(spacing: 12) {
+                        Button("Check Again") {
+                            checkPermission()
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button("Continue Anyway") {
+                            isComplete = true
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    }
+                }
             }
         }
+    }
+
+    private func checkPermission() {
+        hasPermission = CGPreflightScreenCaptureAccess()
     }
 
     private func checkBlackHole() async {
