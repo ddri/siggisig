@@ -25,7 +25,7 @@ struct MixerView: View {
                 Spacer()
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 2) {
+                    HStack(spacing: 8) {
                         // Active routes
                         ForEach(routes) { route in
                             MixerStripView(
@@ -65,6 +65,7 @@ struct MixerView: View {
                         }
                     }
                     .padding(.horizontal, 8)
+                    .animation(.easeInOut(duration: 0.25), value: routes.map(\.id))
                 }
             }
 

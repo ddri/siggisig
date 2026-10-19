@@ -26,7 +26,8 @@ struct MixerStripView: View {
             Text(appName)
                 .font(.caption2)
                 .lineLimit(1)
-                .frame(width: 60)
+                .frame(width: 64)
+                .help(appName)
                 .opacity(isActive ? 1.0 : 0.4)
 
             // Meter + Fader side by side
@@ -85,7 +86,11 @@ struct MixerStripView: View {
                 .foregroundColor(.secondary)
         }
         .padding(.vertical, 8)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+        )
         .onChange(of: meterLevels?.peak ?? 0) { _, newPeak in
             updatePeakHold(newPeak)
         }
