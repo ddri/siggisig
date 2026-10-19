@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var viewModel = RouterViewModel()
+    @Bindable var viewModel: RouterViewModel
 
     var body: some View {
         Group {
@@ -11,13 +11,7 @@ struct ContentView: View {
                 SetupWizardView(isComplete: $viewModel.isSetupComplete)
             }
         }
-        .onChange(of: viewModel.isSetupComplete) { _, complete in
-            if complete {
-                viewModel.setup()
-                viewModel.startRefreshTimer()
-            }
-        }
-        .frame(width: 700, height: 500)
+        .frame(minWidth: 720, idealWidth: 840, minHeight: 480, idealHeight: 560)
     }
 
     private var mainView: some View {
@@ -29,7 +23,7 @@ struct ContentView: View {
                     channelLabel: { viewModel.channelLabel(for: $0) },
                     onToggle: { viewModel.toggleCapture(for: $0) }
                 )
-                .frame(maxWidth: .infinity)
+                .frame(minWidth: 240, idealWidth: 280, maxWidth: 340)
 
                 Divider()
 
