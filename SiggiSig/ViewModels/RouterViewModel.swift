@@ -6,10 +6,30 @@ import SwiftUI
 final class RouterViewModel {
     var availableApps: [CaptureApp] = []
     var routerState = RouterState()
-    var isSetupComplete = false
+    private var isInitialized = false
+    var isSetupComplete: Bool {
+        didSet {
+            UserDefaults.standard.set(isSetupComplete, forKey: "hasCompletedSetup")
+            if isSetupComplete && !isInitialized {
+                isInitialized = true
+                setup()
+                startRefreshTimer()
+            }
+        }
+    }
     var errorMessage: String?
     var meterLevels: [pid_t: MeterLevels] = [:]
     var pendingRoutes: [SavedRoute] = []
+
+    init() {
+        let completed = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
+        self.isSetupComplete = completed
+        if completed {
+            self.isInitialized = true
+            setup()
+            startRefreshTimer()
+        }
+    }
 
     private let engine = AudioCaptureEngine()
     private let sessionStore = SessionStore()

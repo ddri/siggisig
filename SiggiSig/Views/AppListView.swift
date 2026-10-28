@@ -21,6 +21,7 @@ struct AppListView: View {
                     }
                     Text(app.name)
                         .lineLimit(1)
+                        .help(app.name)
                     Spacer()
                     if let label = channelLabel(app) {
                         Text(label)
