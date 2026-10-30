@@ -50,7 +50,7 @@ final class AudioCaptureEngine {
         }
 
         // Connect mainMixerNode to outputNode with explicit 16-channel format
-        guard let format16ch = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 16) else {
+        guard let format16ch = Self.makeOutputFormat() else {
             throw AudioCaptureError.engineStartFailed
         }
         engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format16ch)
@@ -76,19 +76,7 @@ final class AudioCaptureEngine {
 
         let playerNode = AVAudioPlayerNode()
         let routeMixer = AVAudioMixerNode()
-        engine.attach(playerNode)
-        engine.attach(routeMixer)
-
-        // Connect: playerNode → routeMixer → mainMixerNode
-        guard let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2) else {
-            throw AudioCaptureError.engineStartFailed
-        }
-        engine.connect(playerNode, to: routeMixer, format: stereoFormat)
-        engine.connect(routeMixer, to: engine.mainMixerNode, format: stereoFormat)
-
-        // Set channel map on routeMixer to route stereo to correct pair in 16ch output
-        let channelMap = makeChannelMap(slot: slot, totalChannels: 16)
-        routeMixer.auAudioUnit.channelMap = channelMap
+        try Self.connectRoute(player: playerNode, mixer: routeMixer, slot: slot, in: engine)
 
         playerNode.play()
 
@@ -164,7 +152,7 @@ final class AudioCaptureEngine {
 
     func reassignChannel(for app: CaptureApp, to newSlot: Int) {
         guard var managed = activeStreams[app.id] else { return }
-        let channelMap = makeChannelMap(slot: newSlot, totalChannels: 16)
+        let channelMap = Self.makeChannelMap(slot: newSlot, totalChannels: 16)
         managed.routeMixer.auAudioUnit.channelMap = channelMap
         managed.channelSlot = newSlot
         activeStreams[app.id] = managed
@@ -227,6 +215,32 @@ final class AudioCaptureEngine {
         meterCallbacks.removeValue(forKey: app.id)
     }
 
+    // MARK: - Graph construction
+
+    /// The 16-channel format feeding BlackHole. Formats above 2 channels need an explicit
+    /// layout: `AVAudioFormat(standardFormatWithSampleRate:channels: 16)` returns nil.
+    nonisolated static func makeOutputFormat(sampleRate: Double = 48000) -> AVAudioFormat? {
+        guard let layout = AVAudioChannelLayout(layoutTag: kAudioChannelLayoutTag_DiscreteInOrder | 16) else {
+            return nil
+        }
+        return AVAudioFormat(standardFormatWithSampleRate: sampleRate, channelLayout: layout)
+    }
+
+    /// Attaches and connects playerNode → routeMixer → mainMixerNode for a route on `slot`.
+    static func connectRoute(player: AVAudioPlayerNode, mixer: AVAudioMixerNode, slot: Int, in engine: AVAudioEngine) throws {
+        engine.attach(player)
+        engine.attach(mixer)
+
+        guard let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2) else {
+            throw AudioCaptureError.engineStartFailed
+        }
+        engine.connect(player, to: mixer, format: stereoFormat)
+        engine.connect(mixer, to: engine.mainMixerNode, format: stereoFormat)
+
+        // Set channel map on routeMixer to route stereo to correct pair in 16ch output
+        mixer.auAudioUnit.channelMap = makeChannelMap(slot: slot, totalChannels: 16)
+    }
+
     // MARK: - Private
 
     private func nextFreeSlot() -> Int? {
@@ -234,7 +248,7 @@ final class AudioCaptureEngine {
         return (0..<maxStereoSlots).first { !usedSlots.contains($0) }
     }
 
-    private func makeChannelMap(slot: Int, totalChannels: Int) -> [NSNumber] {
+    private static func makeChannelMap(slot: Int, totalChannels: Int) -> [NSNumber] {
         // Map stereo input (ch 0,1) to output channels (slot*2, slot*2+1)
         // -1 means "no audio on this channel"
         var map = [NSNumber](repeating: -1, count: totalChannels)
