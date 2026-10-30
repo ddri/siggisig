@@ -1,16 +1,37 @@
 @preconcurrency import AVFoundation
 import CoreAudio
+import os
 
 struct MeterLevels: Sendable, Equatable {
     let rms: Float      // 0.0 to 1.0
     let peak: Float     // 0.0 to 1.0
 }
 
+/// Channel slot and pan for one route. Written on the main actor, read on the audio
+/// scheduling queue and in the meter tap, so access goes through a lock.
+final class RouteParams: Sendable {
+    private let state: OSAllocatedUnfairLock<(slot: Int, pan: Float)>
+
+    init(slot: Int, pan: Float = 0) {
+        state = OSAllocatedUnfairLock(initialState: (slot, pan))
+    }
+
+    var slot: Int {
+        get { state.withLock { $0.slot } }
+        set { state.withLock { $0.slot = newValue } }
+    }
+
+    var pan: Float {
+        get { state.withLock { $0.pan } }
+        set { state.withLock { $0.pan = newValue } }
+    }
+}
+
 @MainActor
 final class AudioCaptureEngine {
     private let engine = AVAudioEngine()
     private var activeStreams: [pid_t: ManagedStream] = [:]
-    private let maxStereoSlots = 8  // BlackHole 16ch = 8 stereo pairs
+    nonisolated static let maxStereoSlots = 8  // BlackHole 16ch = 8 stereo pairs
     private let audioQueue = DispatchQueue(label: "com.siggisig.audio-scheduling", qos: .userInteractive)
     private var meterCallbacks: [pid_t: @Sendable (MeterLevels) -> Void] = [:]
 
@@ -18,7 +39,8 @@ final class AudioCaptureEngine {
         let appStream: AppAudioStream
         let playerNode: AVAudioPlayerNode
         let routeMixer: AVAudioMixerNode
-        var channelSlot: Int  // 0-7, maps to stereo pair
+        let params: RouteParams
+        var channelSlot: Int { params.slot }  // 0-7, maps to stereo pair
     }
 
     var blackHoleDevice: AudioDevice? {
@@ -65,7 +87,9 @@ final class AudioCaptureEngine {
         }
 
         let slot: Int
-        if let preferred = preferredSlot, !activeStreams.values.contains(where: { $0.channelSlot == preferred }) {
+        if let preferred = preferredSlot,
+           (0..<Self.maxStereoSlots).contains(preferred),
+           !activeStreams.values.contains(where: { $0.channelSlot == preferred }) {
             slot = preferred
         } else {
             guard let freeSlot = nextFreeSlot() else {
@@ -76,18 +100,17 @@ final class AudioCaptureEngine {
 
         let playerNode = AVAudioPlayerNode()
         let routeMixer = AVAudioMixerNode()
-        try Self.connectRoute(player: playerNode, mixer: routeMixer, slot: slot, in: engine)
+        try Self.connectRoute(player: playerNode, mixer: routeMixer, in: engine)
+        let params = RouteParams(slot: slot)
 
         playerNode.play()
 
-        // Swift 6 concurrency: @Sendable closures can't capture [weak self] from a
-        // @MainActor class directly. Intermediate let bindings work around this constraint.
+        // AVAudioPlayerNode isn't Sendable; it's only used for scheduleBuffer on audioQueue.
         nonisolated(unsafe) let node = playerNode
         let queue = self.audioQueue
-        let weakSelf = self
-        let appStream = AppAudioStream(app: app) { buffer, format in
-            queue.async { [weak weakSelf] in
-                weakSelf?.scheduleBuffer(buffer, format: format, on: node)
+        let appStream = AppAudioStream(app: app) { buffer, _ in
+            queue.async {
+                Self.schedule(buffer, on: node, params: params)
             }
         }
 
@@ -97,7 +120,7 @@ final class AudioCaptureEngine {
             appStream: appStream,
             playerNode: playerNode,
             routeMixer: routeMixer,
-            channelSlot: slot
+            params: params
         )
 
         return slot
@@ -151,11 +174,9 @@ final class AudioCaptureEngine {
     }
 
     func reassignChannel(for app: CaptureApp, to newSlot: Int) {
-        guard var managed = activeStreams[app.id] else { return }
-        let channelMap = Self.makeChannelMap(slot: newSlot, totalChannels: 16)
-        managed.routeMixer.auAudioUnit.channelMap = channelMap
-        managed.channelSlot = newSlot
-        activeStreams[app.id] = managed
+        guard (0..<Self.maxStereoSlots).contains(newSlot) else { return }
+        // Takes effect from the next captured chunk; the graph is left untouched.
+        activeStreams[app.id]?.params.slot = newSlot
     }
 
     /// Convert dB value to linear gain with audio taper.
@@ -172,41 +193,44 @@ final class AudioCaptureEngine {
 
     func setPan(for app: CaptureApp, pan: Float) {
         guard let managed = activeStreams[app.id] else { return }
-        managed.routeMixer.pan = max(-1.0, min(1.0, pan))
+        // AVAudioMixerNode.pan has no effect on a 16-channel input; balance is applied in schedule().
+        managed.params.pan = pan
     }
 
     func installMeterTap(for app: CaptureApp, callback: @escaping @Sendable (MeterLevels) -> Void) {
         guard let managed = activeStreams[app.id] else { return }
         meterCallbacks[app.id] = callback
 
+        let params = managed.params
         let bufferSize: AVAudioFrameCount = 1024
         managed.routeMixer.installTap(onBus: 0, bufferSize: bufferSize, format: nil) { buffer, _ in
-            guard let channelData = buffer.floatChannelData else { return }
-            let frameLength = Int(buffer.frameLength)
-            guard frameLength > 0 else { return }
-
-            var rmsSum: Float = 0.0
-            var peak: Float = 0.0
-            let channelCount = Int(buffer.format.channelCount)
-
-            for ch in 0..<channelCount {
-                let samples = channelData[ch]
-                for i in 0..<frameLength {
-                    let sample = abs(samples[i])
-                    rmsSum += samples[i] * samples[i]
-                    if sample > peak { peak = sample }
-                }
+            if let levels = Self.meterLevels(buffer, slot: params.slot) {
+                callback(levels)
             }
-
-            let totalSamples = Float(frameLength * channelCount)
-            let rms = sqrtf(rmsSum / totalSamples)
-
-            // Clamp to 0...1
-            let clampedRMS = min(rms, 1.0)
-            let clampedPeak = min(peak, 1.0)
-
-            callback(MeterLevels(rms: clampedRMS, peak: clampedPeak))
         }
+    }
+
+    /// RMS and peak of the route's own channel pair in a 16-channel buffer. Measuring all
+    /// 16 channels would dilute the RMS with the 14 silent ones.
+    nonisolated static func meterLevels(_ buffer: AVAudioPCMBuffer, slot: Int) -> MeterLevels? {
+        guard let channelData = buffer.floatChannelData,
+              slot >= 0, slot * 2 + 1 < Int(buffer.format.channelCount) else { return nil }
+        let frameLength = Int(buffer.frameLength)
+        guard frameLength > 0 else { return nil }
+
+        var rmsSum: Float = 0.0
+        var peak: Float = 0.0
+        for ch in [slot * 2, slot * 2 + 1] {
+            let samples = channelData[ch]
+            for i in 0..<frameLength {
+                rmsSum += samples[i] * samples[i]
+                peak = max(peak, abs(samples[i]))
+            }
+        }
+
+        let rms = sqrtf(rmsSum / Float(frameLength * 2))
+        // Clamp to 0...1
+        return MeterLevels(rms: min(rms, 1.0), peak: min(peak, 1.0))
     }
 
     func removeMeterTap(for app: CaptureApp) {
@@ -226,56 +250,79 @@ final class AudioCaptureEngine {
         return AVAudioFormat(standardFormatWithSampleRate: sampleRate, channelLayout: layout)
     }
 
-    /// Attaches and connects playerNode → routeMixer → mainMixerNode for a route on `slot`.
-    static func connectRoute(player: AVAudioPlayerNode, mixer: AVAudioMixerNode, slot: Int, in engine: AVAudioEngine) throws {
-        engine.attach(player)
-        engine.attach(mixer)
-
-        guard let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2) else {
+    /// Attaches and connects playerNode → routeMixer → mainMixerNode, 16 channels wide.
+    /// Each route places its own audio on its channel pair (see schedule()), so the
+    /// mixers just sum discrete channels.
+    static func connectRoute(player: AVAudioPlayerNode, mixer: AVAudioMixerNode, in engine: AVAudioEngine) throws {
+        guard let format = makeOutputFormat() else {
             throw AudioCaptureError.engineStartFailed
         }
-        engine.connect(player, to: mixer, format: stereoFormat)
-        engine.connect(mixer, to: engine.mainMixerNode, format: stereoFormat)
+        engine.attach(player)
+        engine.attach(mixer)
+        engine.connect(player, to: mixer, format: format)
+        engine.connect(mixer, to: engine.mainMixerNode, format: format)
+    }
 
-        // Set channel map on routeMixer to route stereo to correct pair in 16ch output
-        mixer.auAudioUnit.channelMap = makeChannelMap(slot: slot, totalChannels: 16)
+    /// Copies a captured stereo chunk onto the route's channel pair of a 16-channel buffer,
+    /// with balance applied, and schedules it. Called on audioQueue.
+    nonisolated static func schedule(_ buffer: AVAudioPCMBuffer, on player: AVAudioPlayerNode, params: RouteParams) {
+        let slot = params.slot
+        let gains = balanceGains(pan: params.pan)
+        guard (0..<maxStereoSlots).contains(slot),
+              let stereo = convertToStereo(buffer),
+              let outputFormat = makeOutputFormat(),
+              let output = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: stereo.frameLength),
+              let src = stereo.floatChannelData,
+              let dst = output.floatChannelData else { return }
+
+        let frames = Int(stereo.frameLength)
+        output.frameLength = stereo.frameLength
+        for ch in 0..<Int(outputFormat.channelCount) {
+            dst[ch].update(repeating: 0, count: frames)
+        }
+        for i in 0..<frames {
+            dst[slot * 2][i] = src[0][i] * gains.left
+            dst[slot * 2 + 1][i] = src[1][i] * gains.right
+        }
+        player.scheduleBuffer(output)
+    }
+
+    /// Balance for a stereo source: centre leaves both sides at unity, and moving towards
+    /// one side turns the other down (-1 = left only, +1 = right only).
+    nonisolated static func balanceGains(pan: Float) -> (left: Float, right: Float) {
+        let pan = max(-1, min(1, pan))
+        return (min(1, 1 - pan), min(1, 1 + pan))
     }
 
     // MARK: - Private
 
     private func nextFreeSlot() -> Int? {
         let usedSlots = Set(activeStreams.values.map(\.channelSlot))
-        return (0..<maxStereoSlots).first { !usedSlots.contains($0) }
+        return (0..<Self.maxStereoSlots).first { !usedSlots.contains($0) }
     }
 
-    private static func makeChannelMap(slot: Int, totalChannels: Int) -> [NSNumber] {
-        // Map stereo input (ch 0,1) to output channels (slot*2, slot*2+1)
-        // -1 means "no audio on this channel"
-        var map = [NSNumber](repeating: -1, count: totalChannels)
-        map[slot * 2] = 0      // left channel
-        map[slot * 2 + 1] = 1  // right channel
-        return map
-    }
+    /// ScreenCaptureKit is configured for 48 kHz stereo float, so this is normally a no-op.
+    private nonisolated static func convertToStereo(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard let stereo = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2) else { return nil }
+        if buffer.format == stereo { return buffer }
 
-    private nonisolated func scheduleBuffer(_ buffer: AVAudioPCMBuffer, format: AVAudioFormat, on playerNode: AVAudioPlayerNode) {
-        // Called on audioQueue
-        let outputFormat = playerNode.outputFormat(forBus: 0)
-        if format == outputFormat {
-            playerNode.scheduleBuffer(buffer)
-        } else if let converter = AVAudioConverter(from: format, to: outputFormat) {
-            guard let convertedBuffer = AVAudioPCMBuffer(
-                pcmFormat: outputFormat,
-                frameCapacity: buffer.frameCapacity
-            ) else { return }
+        guard let converter = AVAudioConverter(from: buffer.format, to: stereo) else { return nil }
+        let ratio = stereo.sampleRate / buffer.format.sampleRate
+        let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 1
+        guard let converted = AVAudioPCMBuffer(pcmFormat: stereo, frameCapacity: capacity) else { return nil }
 
-            var error: NSError?
-            converter.convert(to: convertedBuffer, error: &error) { _, outStatus in
-                outStatus.pointee = .haveData
-                return buffer
+        // Supply the input once, then report no more data so the converter doesn't loop on it.
+        nonisolated(unsafe) var supplied = false
+        var error: NSError?
+        converter.convert(to: converted, error: &error) { _, status in
+            if supplied {
+                status.pointee = .noDataNow
+                return nil
             }
-            if error == nil {
-                playerNode.scheduleBuffer(convertedBuffer)
-            }
+            supplied = true
+            status.pointee = .haveData
+            return buffer
         }
+        return error == nil ? converted : nil
     }
 }
