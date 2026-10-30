@@ -2,9 +2,8 @@ import CoreGraphics
 import SwiftUI
 
 struct SetupWizardView: View {
-    @Binding var isComplete: Bool
+    let onComplete: () -> Void
     @State private var blackHoleDetected = false
-    @State private var checking = false
     @State private var hasPermission = false
     @State private var step = 1
 
@@ -22,13 +21,13 @@ struct SetupWizardView: View {
         }
         .padding(32)
         .frame(width: 480)
-        .task {
+        .onAppear {
             checkPermission()
-            await checkBlackHole()
+            checkBlackHole()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             checkPermission()
-            Task { await checkBlackHole() }
+            checkBlackHole()
         }
     }
 
@@ -62,9 +61,8 @@ struct SetupWizardView: View {
                     .buttonStyle(.borderedProminent)
 
                     Button("Refresh") {
-                        Task { await checkBlackHole() }
+                        checkBlackHole()
                     }
-                    .disabled(checking)
                 }
             }
         }
@@ -94,7 +92,7 @@ struct SetupWizardView: View {
                     .multilineTextAlignment(.center)
 
                 Button("Get Started") {
-                    isComplete = true
+                    onComplete()
                 }
                 .buttonStyle(.borderedProminent)
             } else {
@@ -103,6 +101,11 @@ struct SetupWizardView: View {
                 )
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+
+                Text("Just turned it on? If it still isn't detected, quit and reopen SiggiSig.")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
 
                 VStack(spacing: 8) {
                     Button("Open System Settings") {
@@ -117,7 +120,7 @@ struct SetupWizardView: View {
                         .buttonStyle(.bordered)
 
                         Button("Continue Anyway") {
-                            isComplete = true
+                            onComplete()
                         }
                         .buttonStyle(.plain)
                         .foregroundColor(.secondary)
@@ -129,13 +132,31 @@ struct SetupWizardView: View {
     }
 
     private func checkPermission() {
-        hasPermission = CGPreflightScreenCaptureAccess()
+        hasPermission = CGPreflightScreenCaptureAccess() || Self.canReadOtherWindowTitles()
     }
 
-    private func checkBlackHole() async {
-        checking = true
+    /// CGPreflightScreenCaptureAccess() caches its answer for the life of the process, so a
+    /// grant made in System Settings isn't seen until relaunch. Other apps' window titles are
+    /// only readable with Screen Recording permission, which makes them a live check.
+    private static func canReadOtherWindowTitles() -> Bool {
+        guard
+            let windows = CGWindowListCopyWindowInfo(
+                [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID
+            ) as? [[String: Any]]
+        else { return false }
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        return windows.contains { info in
+            guard let pid = info[kCGWindowOwnerPID as String] as? pid_t, pid != ownPID,
+                let owner = info[kCGWindowOwnerName as String] as? String,
+                owner != "Dock", owner != "Window Server",
+                let title = info[kCGWindowName as String] as? String
+            else { return false }
+            return !title.isEmpty
+        }
+    }
+
+    private func checkBlackHole() {
         blackHoleDetected = AudioDeviceManager.findDevice(named: "BlackHole 16ch") != nil
-        checking = false
     }
 
     private func openScreenRecordingSettings() {

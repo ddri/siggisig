@@ -90,12 +90,9 @@ else
     echo "Signing Identity:  $SIGN_IDENTITY (User-specified)"
 fi
 
-# 2. Ensure project is regenerated with XcodeGen
-echo ""
-echo "-> Regenerating Xcode project with XcodeGen..."
-xcodegen generate
-
-# 3. Clean and build with xcodebuild
+# 2. Clean and build with xcodebuild
+# Uses the committed SiggiSig.xcodeproj. Do not run `xcodegen generate` here:
+# it resets code signing and forces Screen Recording to be re-authorized.
 BUILD_DIR="$PROJECT_DIR/build/DerivedData"
 DIST_DIR="$PROJECT_DIR/dist"
 mkdir -p "$DIST_DIR"
@@ -119,7 +116,7 @@ if [[ ! -d "$BUILT_APP" ]]; then
     exit 1
 fi
 
-# 4. Copy to dist/
+# 3. Copy to dist/
 echo ""
 echo "-> Copying application bundle to dist/..."
 rm -rf "$TARGET_APP"
@@ -129,7 +126,7 @@ cp -R "$BUILT_APP" "$TARGET_APP"
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$TARGET_APP/Contents/Info.plist" 2>/dev/null || echo "1.0.0")
 echo "Application Version: $VERSION"
 
-# 5. Codesign with Hardened Runtime & Entitlements
+# 4. Codesign with Hardened Runtime & Entitlements
 echo ""
 echo "-> Signing $TARGET_APP..."
 ENTITLEMENTS="$PROJECT_DIR/SiggiSig/SiggiSig.entitlements"
@@ -149,7 +146,7 @@ echo "-> Verifying code signature..."
 codesign --verify --deep --strict --verbose=2 "$TARGET_APP"
 echo "Code signature valid!"
 
-# 6. Create DMG if requested
+# 5. Create DMG if requested
 DMG_PATH="$DIST_DIR/SiggiSig-${VERSION}.dmg"
 if [[ "$CREATE_DMG" == true ]]; then
     echo ""
@@ -179,7 +176,7 @@ if [[ "$CREATE_DMG" == true ]]; then
     echo "DMG created successfully: $DMG_PATH ($(du -h "$DMG_PATH" | cut -f1))"
 fi
 
-# 7. Notarize if profile provided
+# 6. Notarize if profile provided
 if [[ -n "$NOTARIZE_PROFILE" ]]; then
     if [[ "$CREATE_DMG" != true ]]; then
         echo "Error: Notarization requires a DMG package." >&2
