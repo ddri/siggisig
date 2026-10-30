@@ -6,29 +6,43 @@ import SwiftUI
 final class RouterViewModel {
     var availableApps: [CaptureApp] = []
     var routerState = RouterState()
+    private static let setupCompleteKey = "hasCompletedSetup"
     private var isInitialized = false
-    var isSetupComplete: Bool {
-        didSet {
-            UserDefaults.standard.set(isSetupComplete, forKey: "hasCompletedSetup")
-            if isSetupComplete && !isInitialized {
-                isInitialized = true
-                setup()
-                startRefreshTimer()
-            }
-        }
-    }
+    private(set) var isSetupComplete: Bool
+    /// Wizard reopened from the Help menu. Not persisted, so quitting mid-wizard
+    /// leaves the completed setup intact for the next launch.
+    var isRerunningSetup = false
+    var showsSetupWizard: Bool { !isSetupComplete || isRerunningSetup }
     var errorMessage: String?
     var meterLevels: [pid_t: MeterLevels] = [:]
     var pendingRoutes: [SavedRoute] = []
 
     init() {
-        let completed = UserDefaults.standard.bool(forKey: "hasCompletedSetup")
-        self.isSetupComplete = completed
-        if completed {
-            self.isInitialized = true
-            setup()
-            startRefreshTimer()
+        self.isSetupComplete = UserDefaults.standard.bool(forKey: Self.setupCompleteKey)
+    }
+
+    /// Starts the engine, observers and refresh timer if setup is complete.
+    /// Kept out of init so creating a view model has no side effects.
+    func start() {
+        // Show the wizard again if BlackHole went missing since setup was completed.
+        if isSetupComplete && AudioDeviceManager.findDevice(named: "BlackHole 16ch") == nil {
+            isSetupComplete = false
         }
+        startIfReady()
+    }
+
+    func completeSetup() {
+        isRerunningSetup = false
+        isSetupComplete = true
+        UserDefaults.standard.set(true, forKey: Self.setupCompleteKey)
+        startIfReady()
+    }
+
+    private func startIfReady() {
+        guard isSetupComplete, !isInitialized else { return }
+        isInitialized = true
+        setup()
+        startRefreshTimer()
     }
 
     private let engine = AudioCaptureEngine()

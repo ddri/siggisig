@@ -2,9 +2,15 @@ import SwiftUI
 
 @main
 struct SiggiSigApp: App {
-    @State private var viewModel = RouterViewModel()
+    @State private var viewModel: RouterViewModel
     @State private var showChangelog = false
     @Environment(\.openWindow) private var openWindow
+
+    init() {
+        let viewModel = RouterViewModel()
+        viewModel.start()
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some Scene {
         Window("SiggiSig", id: "main") {
@@ -20,7 +26,7 @@ struct SiggiSigApp: App {
                     showChangelog = true
                 }
                 Button("Rerun Setup Wizard...") {
-                    viewModel.isSetupComplete = false
+                    viewModel.isRerunningSetup = true
                 }
             }
         }
@@ -52,7 +58,6 @@ struct SiggiSigApp: App {
             openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)
         }
-        .keyboardShortcut("o", modifiers: .command)
 
         Button("What's New") {
             showChangelog = true
@@ -65,6 +70,5 @@ struct SiggiSigApp: App {
         Button("Quit SiggiSig") {
             NSApp.terminate(nil)
         }
-        .keyboardShortcut("q", modifiers: .command)
     }
 }

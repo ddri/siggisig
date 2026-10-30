@@ -5,10 +5,10 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if viewModel.isSetupComplete {
-                mainView
+            if viewModel.showsSetupWizard {
+                SetupWizardView(onComplete: { viewModel.completeSetup() })
             } else {
-                SetupWizardView(isComplete: $viewModel.isSetupComplete)
+                mainView
             }
         }
         .frame(minWidth: 720, idealWidth: 840, minHeight: 480, idealHeight: 560)
