@@ -27,20 +27,39 @@ final class RouteParams: Sendable {
     }
 }
 
+/// A per-app capture source. AppAudioStream in the app; a fake in tests.
+protocol AudioStreamSource: AnyObject, Sendable {
+    func start() async throws
+    func stop() async
+}
+
+extension AppAudioStream: AudioStreamSource {}
+
 @MainActor
 final class AudioCaptureEngine {
+    typealias StreamFactory = @MainActor (
+        CaptureApp, @escaping @Sendable (AVAudioPCMBuffer, AVAudioFormat) -> Void
+    ) -> any AudioStreamSource
+
     private let engine = AVAudioEngine()
+    private let makeStream: StreamFactory
+    /// Slots claimed by captures that are still starting, so overlapping starts can't share one.
+    private var startingSlots: [pid_t: Int] = [:]
     private var activeStreams: [pid_t: ManagedStream] = [:]
     nonisolated static let maxStereoSlots = 8  // BlackHole 16ch = 8 stereo pairs
     private let audioQueue = DispatchQueue(label: "com.siggisig.audio-scheduling", qos: .userInteractive)
     private var meterCallbacks: [pid_t: @Sendable (MeterLevels) -> Void] = [:]
 
     private struct ManagedStream {
-        let appStream: AppAudioStream
+        let appStream: any AudioStreamSource
         let playerNode: AVAudioPlayerNode
         let routeMixer: AVAudioMixerNode
         let params: RouteParams
         var channelSlot: Int { params.slot }  // 0-7, maps to stereo pair
+    }
+
+    init(makeStream: @escaping StreamFactory = { AppAudioStream(app: $0, onAudioBuffer: $1) }) {
+        self.makeStream = makeStream
     }
 
     var blackHoleDevice: AudioDevice? {
@@ -81,22 +100,20 @@ final class AudioCaptureEngine {
         try engine.start()
     }
 
-    func startCapture(for app: CaptureApp, preferredSlot: Int? = nil) async throws -> Int {
+    /// Starts capturing `app` on `preferredSlot` if it's valid and free, otherwise on the
+    /// first free slot not in `reserved` (slots held by saved routes for apps not running).
+    /// Throws `.alreadyStarting` if a start for the same app is still in flight.
+    func startCapture(for app: CaptureApp, preferredSlot: Int? = nil, reserved: Set<Int> = []) async throws -> Int {
         if let existing = activeStreams[app.id] {
             return existing.channelSlot
         }
-
-        let slot: Int
-        if let preferred = preferredSlot,
-           (0..<Self.maxStereoSlots).contains(preferred),
-           !activeStreams.values.contains(where: { $0.channelSlot == preferred }) {
-            slot = preferred
-        } else {
-            guard let freeSlot = nextFreeSlot() else {
-                throw AudioCaptureError.noSlotsAvailable
-            }
-            slot = freeSlot
+        guard startingSlots[app.id] == nil else {
+            throw AudioCaptureError.alreadyStarting
         }
+
+        let slot = try chooseSlot(preferred: preferredSlot, reserved: reserved)
+        startingSlots[app.id] = slot
+        defer { startingSlots.removeValue(forKey: app.id) }
 
         let playerNode = AVAudioPlayerNode()
         let routeMixer = AVAudioMixerNode()
@@ -108,13 +125,18 @@ final class AudioCaptureEngine {
         // AVAudioPlayerNode isn't Sendable; it's only used for scheduleBuffer on audioQueue.
         nonisolated(unsafe) let node = playerNode
         let queue = self.audioQueue
-        let appStream = AppAudioStream(app: app) { buffer, _ in
+        let appStream = makeStream(app) { buffer, _ in
             queue.async {
                 Self.schedule(buffer, on: node, params: params)
             }
         }
 
-        try await appStream.start()
+        do {
+            try await appStream.start()
+        } catch {
+            detach(playerNode, routeMixer)
+            throw error
+        }
 
         activeStreams[app.id] = ManagedStream(
             appStream: appStream,
@@ -127,33 +149,21 @@ final class AudioCaptureEngine {
     }
 
     func stopCapture(for app: CaptureApp) async {
-        guard let managed = activeStreams.removeValue(forKey: app.id) else { return }
-        meterCallbacks.removeValue(forKey: app.id)
+        await stopCapture(pid: app.id)
+    }
+
+    func stopCapture(pid: pid_t) async {
+        guard let managed = activeStreams.removeValue(forKey: pid) else { return }
+        meterCallbacks.removeValue(forKey: pid)
         await managed.appStream.stop()
-        let node = managed.playerNode
-        let mixer = managed.routeMixer
-        let eng = self.engine
-        audioQueue.sync {
-            mixer.removeTap(onBus: 0)
-            node.stop()
-            eng.detach(node)
-            eng.detach(mixer)
-        }
+        detach(managed.playerNode, managed.routeMixer)
     }
 
     func stopAll() async {
         meterCallbacks.removeAll()
         for (_, managed) in activeStreams {
             await managed.appStream.stop()
-            let node = managed.playerNode
-            let mixer = managed.routeMixer
-            let eng = self.engine
-            audioQueue.sync {
-                mixer.removeTap(onBus: 0)
-                node.stop()
-                eng.detach(node)
-                eng.detach(mixer)
-            }
+            detach(managed.playerNode, managed.routeMixer)
         }
         activeStreams.removeAll()
         engine.stop()
@@ -170,8 +180,10 @@ final class AudioCaptureEngine {
     var activeAppCount: Int { activeStreams.count }
 
     var usedSlots: Set<Int> {
-        Set(activeStreams.values.map(\.channelSlot))
+        Set(activeStreams.values.map(\.channelSlot)).union(startingSlots.values)
     }
+
+    var activePIDs: Set<pid_t> { Set(activeStreams.keys) }
 
     func reassignChannel(for app: CaptureApp, to newSlot: Int) {
         guard (0..<Self.maxStereoSlots).contains(newSlot) else { return }
@@ -296,9 +308,27 @@ final class AudioCaptureEngine {
 
     // MARK: - Private
 
-    private func nextFreeSlot() -> Int? {
-        let usedSlots = Set(activeStreams.values.map(\.channelSlot))
-        return (0..<Self.maxStereoSlots).first { !usedSlots.contains($0) }
+    private func chooseSlot(preferred: Int?, reserved: Set<Int>) throws -> Int {
+        let used = usedSlots
+        if let preferred, (0..<Self.maxStereoSlots).contains(preferred), !used.contains(preferred) {
+            return preferred
+        }
+        let free = (0..<Self.maxStereoSlots).filter { !used.contains($0) }
+        // Take a reserved slot only when nothing else is free.
+        guard let slot = free.first(where: { !reserved.contains($0) }) ?? free.first else {
+            throw AudioCaptureError.noSlotsAvailable
+        }
+        return slot
+    }
+
+    private func detach(_ node: AVAudioPlayerNode, _ mixer: AVAudioMixerNode) {
+        let eng = self.engine
+        audioQueue.sync {
+            mixer.removeTap(onBus: 0)
+            node.stop()
+            eng.detach(node)
+            eng.detach(mixer)
+        }
     }
 
     /// ScreenCaptureKit is configured for 48 kHz stereo float, so this is normally a no-op.
