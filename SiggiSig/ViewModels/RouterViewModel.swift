@@ -17,7 +17,21 @@ final class RouterViewModel {
     var meterLevels: [pid_t: MeterLevels] = [:]
     var pendingRoutes: [SavedRoute] = []
 
-    init() {
+    private let engine: AudioCaptureEngine
+    private let sessionStore: SessionStore
+    private let runningApps: () -> [CaptureApp]
+    /// Apps with a connect or disconnect in progress; further clicks on them are ignored.
+    private var togglesInFlight: Set<pid_t> = []
+    private var hasRestoredSession = false
+
+    init(
+        engine: AudioCaptureEngine? = nil,
+        sessionStore: SessionStore = SessionStore(),
+        runningApps: @escaping () -> [CaptureApp] = AppDiscovery.runningApps
+    ) {
+        self.engine = engine ?? AudioCaptureEngine()
+        self.sessionStore = sessionStore
+        self.runningApps = runningApps
         self.isSetupComplete = UserDefaults.standard.bool(forKey: Self.setupCompleteKey)
     }
 
@@ -45,8 +59,6 @@ final class RouterViewModel {
         startRefreshTimer()
     }
 
-    private let engine = AudioCaptureEngine()
-    private let sessionStore = SessionStore()
     private var saveTimer: Timer?
     private var refreshTimer: Timer?
     private var workspaceObserver: NSObjectProtocol?
@@ -87,13 +99,14 @@ final class RouterViewModel {
         setupEngine()
         observeWorkspace()
         observeAudioDevices()
-        restoreSession()
     }
 
+    /// Restores the saved session once the engine is running (first try or the retry).
     private func setupEngine() {
         do {
             try engine.setup()
             errorMessage = nil
+            Task { await restoreSession() }
         } catch {
             errorMessage = "Failed to start audio engine"
             // Retry once after a short delay — BlackHole may not be ready yet
@@ -102,7 +115,7 @@ final class RouterViewModel {
                 do {
                     try engine.setup()
                     errorMessage = nil
-                    restoreSession()
+                    await restoreSession()
                 } catch {
                     errorMessage = "Failed to start audio engine"
                 }
@@ -130,35 +143,62 @@ final class RouterViewModel {
     }
 
     func toggleCapture(for app: CaptureApp) {
-        Task {
-            if engine.isCapturing(app) {
-                await engine.stopCapture(for: app)
-                routerState.removeRoute(pid: app.id)
-                meterLevels.removeValue(forKey: app.id)
+        Task { await toggle(app) }
+    }
+
+    func toggle(_ app: CaptureApp) async {
+        guard !togglesInFlight.contains(app.id) else { return }
+        togglesInFlight.insert(app.id)
+        defer { togglesInFlight.remove(app.id) }
+
+        if engine.isCapturing(app) {
+            await disconnect(pid: app.id)
+            scheduleSave()
+        } else {
+            do {
+                try await connect(app)
+                errorMessage = nil
                 scheduleSave()
-            } else {
-                do {
-                    let slot = try await engine.startCapture(for: app)
-                    errorMessage = nil
-                    routerState.addRoute(
-                        appName: app.name,
-                        bundleID: app.bundleIdentifier,
-                        pid: app.id,
-                        slot: slot
-                    )
-                    let pid = app.id
-                    engine.installMeterTap(for: app) { [weak self] levels in
-                        Task { @MainActor in
-                            self?.meterLevels[pid] = levels
-                        }
-                    }
-                    scheduleSave()
-                    errorMessage = nil
-                } catch {
-                    errorMessage = error.localizedDescription
-                }
+            } catch AudioCaptureError.alreadyStarting {
+                // Session restore or auto-connect is already bringing this app up.
+            } catch {
+                errorMessage = error.localizedDescription
             }
         }
+    }
+
+    func appTerminated(pid: pid_t) async {
+        await disconnect(pid: pid)
+        scheduleSave()
+    }
+
+    /// Starts capturing `app` and adds its route, applying a saved route's slot, volume and pan.
+    private func connect(_ app: CaptureApp, saved: SavedRoute? = nil) async throws {
+        let slot = try await engine.startCapture(
+            for: app,
+            preferredSlot: saved?.channelSlot,
+            reserved: Set(pendingRoutes.map(\.channelSlot))
+        )
+        guard routerState.slotFor(pid: app.id) == nil else { return }
+        routerState.addRoute(appName: app.name, bundleID: app.bundleIdentifier, pid: app.id, slot: slot)
+        if let saved {
+            routerState.setVolume(pid: app.id, volume: saved.volume)
+            engine.setVolume(for: app, db: saved.volume)
+            routerState.setPan(pid: app.id, pan: saved.pan)
+            engine.setPan(for: app, pan: saved.pan)
+        }
+        let pid = app.id
+        engine.installMeterTap(for: app) { [weak self] levels in
+            Task { @MainActor in
+                self?.meterLevels[pid] = levels
+            }
+        }
+    }
+
+    private func disconnect(pid: pid_t) async {
+        await engine.stopCapture(pid: pid)
+        routerState.removeRoute(pid: pid)
+        meterLevels.removeValue(forKey: pid)
     }
 
     func setVolume(for pid: pid_t, db: Float) {
@@ -188,8 +228,9 @@ final class RouterViewModel {
     }
 
     var availableSlots: [Int] {
-        let used = engine.usedSlots
-        return (0..<8).filter { !used.contains($0) }
+        // Slots saved for apps that aren't running are held for them.
+        let used = engine.usedSlots.union(pendingRoutes.map(\.channelSlot))
+        return (0..<AudioCaptureEngine.maxStereoSlots).filter { !used.contains($0) }
     }
 
     func isRouted(_ app: CaptureApp) -> Bool {
@@ -210,10 +251,12 @@ final class RouterViewModel {
         }
     }
 
-    private func saveSession() {
-        var savedRoutes = routerState.routes.map { route in
-            SavedRoute(
-                bundleID: route.bundleID ?? "",
+    /// Apps without a bundle ID aren't saved: there's no way to match them on the next launch.
+    func saveSession() {
+        var savedRoutes = routerState.routes.compactMap { route -> SavedRoute? in
+            guard let bundleID = route.bundleID, !bundleID.isEmpty else { return nil }
+            return SavedRoute(
+                bundleID: bundleID,
                 appName: route.appName,
                 channelSlot: route.slot,
                 volume: route.volume,
@@ -228,39 +271,25 @@ final class RouterViewModel {
         }
     }
 
-    private func restoreSession() {
+    /// Runs once per launch. Saved apps that aren't running become pending (holding their
+    /// slots); running ones are reconnected one at a time so they can't race for slots.
+    func restoreSession() async {
+        guard !hasRestoredSession else { return }
+        hasRestoredSession = true
         guard let savedRoutes = try? sessionStore.load(), !savedRoutes.isEmpty else { return }
 
-        let runningApps = AppDiscovery.runningApps()
-
-        for saved in savedRoutes {
-            if let app = runningApps.first(where: { $0.bundleIdentifier == saved.bundleID }) {
-                Task {
-                    do {
-                        let slot = try await engine.startCapture(for: app, preferredSlot: saved.channelSlot)
-                        routerState.addRoute(
-                            appName: app.name,
-                            bundleID: app.bundleIdentifier,
-                            pid: app.id,
-                            slot: slot
-                        )
-                        routerState.setVolume(pid: app.id, volume: saved.volume)
-                        engine.setVolume(for: app, db: saved.volume)
-                        routerState.setPan(pid: app.id, pan: saved.pan)
-                        engine.setPan(for: app, pan: saved.pan)
-                        let pid = app.id
-                        engine.installMeterTap(for: app) { [weak self] levels in
-                            Task { @MainActor in
-                                self?.meterLevels[pid] = levels
-                            }
-                        }
-                    } catch {
-                        // If restore fails for one app, continue with others
-                    }
-                }
-            } else {
+        let running = runningApps()
+        var toConnect: [(CaptureApp, SavedRoute)] = []
+        for saved in savedRoutes where !saved.bundleID.isEmpty {
+            if let app = running.first(where: { $0.bundleIdentifier == saved.bundleID }) {
+                toConnect.append((app, saved))
+            } else if !pendingRoutes.contains(where: { $0.bundleID == saved.bundleID }) {
                 pendingRoutes.append(saved)
             }
+        }
+        for (app, saved) in toConnect {
+            // If restore fails for one app, continue with others
+            try? await connect(app, saved: saved)
         }
     }
 
@@ -275,9 +304,7 @@ final class RouterViewModel {
             guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
             let pid = app.processIdentifier
             Task { @MainActor in
-                self?.routerState.removeRoute(pid: pid)
-                self?.meterLevels.removeValue(forKey: pid)
-                self?.scheduleSave()
+                await self?.appTerminated(pid: pid)
             }
         }
 
@@ -300,26 +327,12 @@ final class RouterViewModel {
 
         Task {
             try? await Task.sleep(for: .seconds(1))
-            let apps = AppDiscovery.runningApps()
-            guard let app = apps.first(where: { $0.bundleIdentifier == bundleID }) else { return }
+            guard let app = runningApps().first(where: { $0.bundleIdentifier == bundleID }) else {
+                pendingRoutes.append(saved)
+                return
+            }
             do {
-                let slot = try await engine.startCapture(for: app, preferredSlot: saved.channelSlot)
-                routerState.addRoute(
-                    appName: app.name,
-                    bundleID: app.bundleIdentifier,
-                    pid: app.id,
-                    slot: slot
-                )
-                routerState.setVolume(pid: app.id, volume: saved.volume)
-                engine.setVolume(for: app, db: saved.volume)
-                routerState.setPan(pid: app.id, pan: saved.pan)
-                engine.setPan(for: app, pan: saved.pan)
-                let appPid = app.id
-                engine.installMeterTap(for: app) { [weak self] levels in
-                    Task { @MainActor in
-                        self?.meterLevels[appPid] = levels
-                    }
-                }
+                try await connect(app, saved: saved)
             } catch {
                 pendingRoutes.append(saved)
             }
@@ -343,13 +356,17 @@ final class RouterViewModel {
         )
     }
 
+    /// Backstop for missed quit notifications. Checks the engine's captures (not just the
+    /// routes, so orphans are caught too) against the process table rather than the app
+    /// list, which leaves out apps that drop to background-only mode while still running.
     private func cleanupDeadProcesses() {
-        let livePIDs = Set(availableApps.map(\.id))
-        let deadRoutes = routerState.routes.filter { !livePIDs.contains($0.pid) }
-        for route in deadRoutes {
-            let fakeApp = CaptureApp(id: route.pid, name: route.appName, bundleIdentifier: route.bundleID, icon: nil)
-            Task { await engine.stopCapture(for: fakeApp) }
-            routerState.removeRoute(pid: route.pid)
+        for pid in engine.activePIDs where !Self.isProcessAlive(pid) {
+            Task { await appTerminated(pid: pid) }
         }
+    }
+
+    private static func isProcessAlive(_ pid: pid_t) -> Bool {
+        guard let app = NSRunningApplication(processIdentifier: pid) else { return false }
+        return !app.isTerminated
     }
 }

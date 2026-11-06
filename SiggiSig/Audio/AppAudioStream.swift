@@ -7,6 +7,7 @@ enum AudioCaptureError: Error, LocalizedError {
     case blackHoleNotFound
     case engineStartFailed
     case noSlotsAvailable
+    case alreadyStarting
 
     var errorDescription: String? {
         switch self {
@@ -14,6 +15,7 @@ enum AudioCaptureError: Error, LocalizedError {
         case .blackHoleNotFound: "BlackHole 16ch not found. Please install it."
         case .engineStartFailed: "Failed to start audio engine"
         case .noSlotsAvailable: "All 8 stereo channel slots are in use"
+        case .alreadyStarting: "Capture is already starting for this app"
         }
     }
 }
